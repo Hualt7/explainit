@@ -49,7 +49,7 @@ ${script}
                 "X-Title": "ExplainIt",
             },
             body: JSON.stringify({
-                model: "anthropic/claude-3-opus",
+                model: "anthropic/claude-3.5-sonnet", // Using 3.5 Sonnet as it's Anthropic's latest/best
                 messages: [
                     { role: "user", content: prompt },
                 ],
