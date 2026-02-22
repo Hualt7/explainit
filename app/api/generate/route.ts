@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
     try {
-        const { script } = await req.json();
+        const { script, settings } = await req.json();
 
         if (!script || script.trim().length === 0) {
             return NextResponse.json(
@@ -11,15 +11,59 @@ export async function POST(req: Request) {
             );
         }
 
+        // Build dynamic settings from user preferences
+        const tone = settings?.tone || "professional";
+        const slideCount = settings?.slideCount || "medium";
+        const style = settings?.style || "balanced";
+        const includeCode = settings?.includeCode !== false;
+        const includeQuotes = settings?.includeQuotes !== false;
+        const includeFunFacts = settings?.includeFunFacts !== false;
+        const includeStatistics = settings?.includeStatistics !== false;
+        const customInstructions = settings?.customInstructions || "";
+
+        const slideCountRange = slideCount === "short" ? "6-8" : slideCount === "long" ? "16-20" : "12-15";
+
+        const toneInstructions: Record<string, string> = {
+            professional: "Use a clean, corporate, and authoritative tone. Be precise and polished.",
+            casual: "Use a friendly, approachable, conversational tone. Like explaining to a friend.",
+            academic: "Use a research-oriented, scholarly tone with proper terminology and citations.",
+            fun: "Use a playful, energetic, entertaining tone. Add humor and enthusiasm.",
+            storytelling: "Use a narrative-driven approach. Tell a story, build suspense, use analogies.",
+        };
+
+        const styleInstructions: Record<string, string> = {
+            visual: "Emphasize highly visual slides — more comparisons, diagrams, timelines, mindmaps, and tables. Minimize long text blocks.",
+            balanced: "Use a balanced mix of text-based and visual slides for variety.",
+            "text-heavy": "Provide more detailed text explanations with thorough content slides and definitions.",
+        };
+
+        const excludedTypes: string[] = [];
+        if (!includeCode) excludedTypes.push('"code"');
+        if (!includeQuotes) excludedTypes.push('"quote"');
+        if (!includeFunFacts) excludedTypes.push('"funfact"');
+        if (!includeStatistics) excludedTypes.push('"statistic"');
+
+        const excludeLine = excludedTypes.length > 0
+            ? `\nDO NOT use these slide types: ${excludedTypes.join(", ")}.`
+            : "";
+
+        const customLine = customInstructions.trim()
+            ? `\nADDITIONAL USER INSTRUCTIONS (follow these carefully):\n${customInstructions.trim()}`
+            : "";
+
         const prompt = `You are ExplainIt, a world-class educational content designer and visual storyteller. Your job is to transform raw text into a RICH, DETAILED, VISUALLY DIVERSE presentation that feels like a premium educational video.
+
+TONE: ${toneInstructions[tone] || toneInstructions.professional}
+
+VISUAL STYLE: ${styleInstructions[style] || styleInstructions.balanced}
 
 CRITICAL RULES:
 1. Do NOT just copy the user's text. REWRITE, EXPAND, and ENRICH the content with your own expert knowledge.
 2. Add examples, analogies, data, and insights that go FAR BEYOND what the user wrote.
-3. Generate 12-20 slides — MORE content is BETTER. Make it thorough and educational.
+3. Generate ${slideCountRange} slides. Make it thorough and educational.
 4. NEVER use the same slide type twice in a row.
 5. Use a WIDE VARIETY of types — the more visual diversity, the better.
-6. Each slide should have a unique accent color.
+6. Each slide should have a unique accent color.${excludeLine}${customLine}
 
 AVAILABLE SLIDE TYPES (use as many different types as possible):
 

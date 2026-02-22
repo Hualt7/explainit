@@ -1,9 +1,14 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { ArrowRight, Sparkles, Wand2, Video, Code2, Zap, Shield, Palette } from "lucide-react";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
+import { animate, stagger } from "animejs";
+import ShinyText from "./components/reactbits/ShinyText";
+import SpotlightCard from "./components/reactbits/SpotlightCard";
+import DecryptedText from "./components/reactbits/DecryptedText";
 
 const SpotlightCursor = dynamic(() => import("./components/SpotlightCursor"), {
   ssr: false,
@@ -19,6 +24,21 @@ const fadeUp = {
 };
 
 export default function Home() {
+  const heroTextRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (!heroTextRef.current) return;
+    const letters = heroTextRef.current.querySelectorAll(".hero-letter");
+    animate(letters, {
+      opacity: [0, 1],
+      translateY: [30, 0],
+      scale: [0.8, 1],
+      ease: "outElastic(1, 0.5)",
+      duration: 1200,
+      delay: stagger(40, { start: 600 }),
+    });
+  }, []);
+
   return (
     <div className="min-h-screen bg-black text-white selection:bg-purple-500/30 relative">
       <SpotlightCursor config={{ spotlightSize: 500, spotlightIntensity: 1.0, glowColor: "147, 100, 255", pulseSpeed: 3000 }} />
@@ -60,7 +80,7 @@ export default function Home() {
               className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-purple-400"
             >
               <span className="flex h-2 w-2 rounded-full bg-purple-500 animate-pulse"></span>
-              AI-Powered with Gemini
+              <ShinyText text="AI-Powered with Gemini" speed={3} />
             </motion.div>
 
             <motion.h1
@@ -72,8 +92,12 @@ export default function Home() {
             >
               Turn text into
               <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-blue-500 animate-gradient">
-                stunning videos.
+              <span ref={heroTextRef} className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-blue-500 animate-gradient">
+                {"stunning videos.".split("").map((char, i) => (
+                  <span key={i} className="hero-letter inline-block" style={{ opacity: 0 }}>
+                    {char === " " ? "\u00a0" : char}
+                  </span>
+                ))}
               </span>
             </motion.h1>
 
@@ -205,13 +229,14 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="glass-panel rounded-2xl p-6 hover:bg-white/[0.06] transition-colors group"
             >
-              <div className={`w-12 h-12 rounded-xl bg-${feature.color}-500/10 border border-${feature.color}-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                <feature.icon className={`w-6 h-6 text-${feature.color}-400`} />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">{feature.desc}</p>
+              <SpotlightCard className="p-6 h-full group" spotlightColor={`rgba(${feature.color === "purple" ? "147,51,234" : feature.color === "blue" ? "59,130,246" : "236,72,153"}, 0.12)`}>
+                <div className={`w-12 h-12 rounded-xl bg-${feature.color}-500/10 border border-${feature.color}-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                  <feature.icon className={`w-6 h-6 text-${feature.color}-400`} />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">{feature.desc}</p>
+              </SpotlightCard>
             </motion.div>
           ))}
         </div>
@@ -245,7 +270,7 @@ export default function Home() {
               transition={{ delay: i * 0.15 }}
               className="text-center space-y-4"
             >
-              <div className="text-6xl font-black text-white/5">{item.step}</div>
+              <div className="text-6xl font-black text-white/5"><DecryptedText text={item.step} speed={60} revealOnView /></div>
               <h3 className="text-xl font-bold">{item.title}</h3>
               <p className="text-gray-400 text-sm leading-relaxed">{item.desc}</p>
             </motion.div>

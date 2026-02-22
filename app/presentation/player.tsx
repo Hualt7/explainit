@@ -97,10 +97,34 @@ function TimelineSlide({ slide }: { slide: any }) {
 
 function StatisticSlide({ slide }: { slide: any }) {
     const a = getAccent(slide.accent);
+    const numberRef = useRef<HTMLSpanElement>(null);
+
+    useEffect(() => {
+        if (!numberRef.current) return;
+        const raw = String(slide.number).replace(/[^0-9.]/g, "");
+        const target = parseFloat(raw);
+        if (isNaN(target)) return;
+        const prefix = String(slide.number).match(/^[^0-9.]*/)?.[0] || "";
+        const suffix = String(slide.number).match(/[^0-9.]*$/)?.[0] || "";
+        const hasDecimals = raw.includes(".");
+        const decimals = hasDecimals ? (raw.split(".")[1]?.length || 0) : 0;
+        const obj = { val: 0 };
+        animate(obj, {
+            val: target,
+            duration: 1800,
+            ease: "outExpo",
+            onUpdate: () => {
+                if (numberRef.current) {
+                    numberRef.current.textContent = `${prefix}${hasDecimals ? obj.val.toFixed(decimals) : Math.round(obj.val)}${suffix}`;
+                }
+            },
+        });
+    }, [slide.number]);
+
     return (
         <div className="z-10 text-center max-w-4xl mx-auto space-y-8">
             <h2 className="animate-in text-2xl md:text-3xl font-bold text-gray-400" style={SF}>{slide.title}</h2>
-            <div className="animate-in"><span className={`text-7xl md:text-[10rem] font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r ${a.gradient} leading-none`} style={SF}>{slide.number}</span></div>
+            <div className="animate-in"><span ref={numberRef} className={`text-7xl md:text-[10rem] font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r ${a.gradient} leading-none`} style={SF}>0</span></div>
             {slide.unit && <p className={`animate-in text-2xl font-semibold ${a.text}`}>{slide.unit}</p>}
             {slide.description && <p className="animate-in text-xl text-gray-400 max-w-xl mx-auto leading-relaxed">{slide.description}</p>}
         </div>
@@ -448,8 +472,81 @@ export default function PresentationPlayer({ slides }: { slides: any[] }) {
     useEffect(() => {
         if (!slideRef.current) return;
         const targets = slideRef.current.querySelectorAll(".animate-in");
-        animate(targets, { opacity: [0, 1], translateY: [40, 0], scale: [0.97, 1], ease: "outExpo", duration: 900, delay: stagger(100, { start: 60 }) });
-        if (bgRef.current) animate(bgRef.current, { scale: [1, 1.15, 1], opacity: [0.3, 0.5, 0.3], ease: "inOutSine", duration: 6000, loop: true });
+        const type = slides[currentSlide]?.type;
+
+        // Per-type animation variants
+        if (type === "timeline") {
+            // Zigzag stagger entrance for timeline steps
+            animate(targets, {
+                opacity: [0, 1],
+                translateX: (_: any, i: number) => [i % 2 === 0 ? -60 : 60, 0],
+                translateY: [20, 0],
+                ease: "outExpo",
+                duration: 1000,
+                delay: stagger(150, { start: 80 }),
+            });
+        } else if (type === "comparison" || type === "pros_cons") {
+            // Side panels slide in from edges
+            animate(targets, {
+                opacity: [0, 1],
+                translateX: (_: any, i: number) => [i % 2 === 0 ? -80 : 80, 0],
+                scale: [0.9, 1],
+                ease: "outExpo",
+                duration: 1100,
+                delay: stagger(120, { start: 60 }),
+            });
+        } else if (type === "diagram" || type === "mindmap") {
+            // Scale + slight rotation for nodes
+            animate(targets, {
+                opacity: [0, 1],
+                scale: [0.7, 1],
+                rotate: ["-5deg", "0deg"],
+                ease: "outElastic(1, 0.6)",
+                duration: 1200,
+                delay: stagger(100, { start: 100 }),
+            });
+        } else if (type === "highlight" || type === "statistic") {
+            // Big dramatic scale entrance
+            animate(targets, {
+                opacity: [0, 1],
+                scale: [0.5, 1],
+                translateY: [60, 0],
+                ease: "outExpo",
+                duration: 1400,
+                delay: stagger(200, { start: 0 }),
+            });
+        } else if (type === "code") {
+            // Slide down like a terminal opening
+            animate(targets, {
+                opacity: [0, 1],
+                translateY: [-40, 0],
+                scaleY: [0.8, 1],
+                ease: "outExpo",
+                duration: 900,
+                delay: stagger(150, { start: 100 }),
+            });
+        } else {
+            // Default rich entrance
+            animate(targets, {
+                opacity: [0, 1],
+                translateY: [40, 0],
+                scale: [0.97, 1],
+                ease: "outExpo",
+                duration: 900,
+                delay: stagger(100, { start: 60 }),
+            });
+        }
+
+        // Enhanced background glow animation
+        if (bgRef.current) {
+            animate(bgRef.current, {
+                scale: [1, 1.2, 1.05, 1.15, 1],
+                opacity: [0.2, 0.5, 0.35, 0.45, 0.25],
+                ease: "inOutSine",
+                duration: 8000,
+                loop: true,
+            });
+        }
     }, [currentSlide]);
 
     if (!slides || slides.length === 0) return <div className="flex h-screen items-center justify-center text-white bg-black">No slides to display.</div>;

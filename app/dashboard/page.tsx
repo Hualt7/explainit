@@ -19,6 +19,9 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useProjectStore } from "../store/useProjectStore";
 import dynamic from "next/dynamic";
+import { ExplainItVideo, SLIDE_DURATION_FRAMES } from "../remotion/Root";
+
+import { useSettingsStore } from "../store/useSettingsStore";
 
 const VideoPreview = dynamic(() => import("../remotion/VideoPreview"), {
     ssr: false,
@@ -30,15 +33,25 @@ const VideoPreview = dynamic(() => import("../remotion/VideoPreview"), {
 });
 
 export default function Dashboard() {
-    const [scriptText, setScriptText] = useState("");
+    const storeScriptText = useProjectStore((state) => state.scriptText);
+    const storeSetScriptText = useProjectStore((state) => state.setScriptText);
+    const [scriptText, setScriptTextLocal] = useState(storeScriptText);
     const [isGenerating, setIsGenerating] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
+    const [exportProgress, setExportProgress] = useState(0);
     const [isSaving, setIsSaving] = useState(false);
     const generatedSlides = useProjectStore((state) => state.generatedSlides);
     const setGeneratedSlides = useProjectStore((state) => state.setGeneratedSlides);
     const currentProjectId = useProjectStore((state) => state.currentProjectId);
     const setCurrentProjectId = useProjectStore((state) => state.setCurrentProjectId);
+    const projectTitle = useProjectStore((state) => state.projectTitle);
+    const aiSettings = useSettingsStore((state) => state.ai);
     const router = useRouter();
+
+    const setScriptText = (text: string) => {
+        setScriptTextLocal(text);
+        storeSetScriptText(text);
+    };
 
     const handleGenerate = async () => {
         setIsGenerating(true);
@@ -47,7 +60,7 @@ export default function Dashboard() {
             const response = await fetch('/api/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ script: scriptText }),
+                body: JSON.stringify({ script: scriptText, settings: aiSettings }),
             });
 
             const data = await response.json();
@@ -68,33 +81,42 @@ export default function Dashboard() {
     const handleExport = async () => {
         if (generatedSlides.length === 0) return;
         setIsExporting(true);
+        setExportProgress(0);
 
         try {
-            const response = await fetch('/api/export', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ slides: generatedSlides }),
+            const { renderMediaOnWeb } = await import("@remotion/web-renderer");
+            const totalFrames = generatedSlides.length * SLIDE_DURATION_FRAMES;
+
+            const { getBlob } = await renderMediaOnWeb({
+                composition: {
+                    component: () => <ExplainItVideo slides={generatedSlides} />,
+                    durationInFrames: totalFrames,
+                    fps: 30,
+                    width: 1920,
+                    height: 1080,
+                    id: "ExplainItVideo",
+                },
+                inputProps: { slides: generatedSlides },
+                onProgress: ({ renderedFrames }) => {
+                    setExportProgress(Math.round((renderedFrames / totalFrames) * 100));
+                },
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.details || 'Export failed');
-            }
-
-            const blob = await response.blob();
+            const blob = await getBlob();
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
+            const a = document.createElement("a");
             a.href = url;
-            a.download = 'explainit-presentation.mp4';
+            a.download = "explainit-presentation.mp4";
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         } catch (error: any) {
-            console.error('Export error:', error);
-            alert(`Export failed: ${error.message}. Make sure ffmpeg is installed.`);
+            console.error("Export error:", error);
+            alert(`Export failed: ${error.message}`);
         } finally {
             setIsExporting(false);
+            setExportProgress(0);
         }
     };
 
@@ -161,8 +183,11 @@ export default function Dashboard() {
                 </div>
 
                 <nav className="flex-1 space-y-2">
-                    <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/10 text-white font-medium">
+                    <Link href="/dashboard/projects" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-400 font-medium transition-colors">
                         <Layout className="w-5 h-5" /> Projects
+                    </Link>
+                    <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/10 text-white font-medium">
+                        <Plus className="w-5 h-5" /> New Project
                     </Link>
                     <Link href="/settings" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-400 font-medium transition-colors">
                         <Settings className="w-5 h-5" /> Settings
@@ -181,7 +206,7 @@ export default function Dashboard() {
             <main className="flex-1 flex flex-col h-full relative">
                 {/* Header */}
                 <header className="h-16 flex items-center justify-between px-6 border-b border-white/10 shrink-0">
-                    <h1 className="font-semibold text-lg">New Project</h1>
+                    <h1 className="font-semibold text-lg">{currentProjectId ? projectTitle : "New Project"}</h1>
                     <div className="flex gap-3">
                         <button
                             onClick={handleSave}
@@ -255,7 +280,7 @@ export default function Dashboard() {
                                                     {isExporting ? (
                                                         <>
                                                             <div className="w-3 h-3 border border-purple-400 border-t-transparent rounded-full animate-spin"></div>
-                                                            Rendering...
+                                                            {exportProgress}%
                                                         </>
                                                     ) : (
                                                         <>
