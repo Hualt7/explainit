@@ -164,7 +164,7 @@ export default function Dashboard() {
                     <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/10 text-white font-medium">
                         <Layout className="w-5 h-5" /> Projects
                     </Link>
-                    <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-400 font-medium transition-colors">
+                    <Link href="/settings" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-400 font-medium transition-colors">
                         <Settings className="w-5 h-5" /> Settings
                     </Link>
                 </nav>

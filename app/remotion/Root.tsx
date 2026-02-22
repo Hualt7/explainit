@@ -1,29 +1,39 @@
 import React from "react";
 import { Composition, Series } from "remotion";
-import { TitleSlide, ContentSlide, DiagramSlide, SummarySlide } from "./Slide";
+import {
+    TitleSlide,
+    ContentSlide,
+    ComparisonSlide,
+    TimelineSlide,
+    StatisticSlide,
+    QuoteSlide,
+    DiagramSlide,
+    ListSlide,
+    CalloutSlide,
+    SummarySlide,
+} from "./Slide";
 
 interface Slide {
     id: number;
     type: string;
-    content: string;
-    icon: string;
+    [key: string]: any;
 }
 
-const SLIDE_DURATION_FRAMES = 90; // 3 seconds at 30fps
+const SLIDE_DURATION_FRAMES = 150; // 5 seconds at 30fps
 
-const SlideRouter: React.FC<{ type: string; content: string }> = ({
-    type,
-    content,
-}) => {
-    switch (type) {
-        case "title":
-            return <TitleSlide type={type} content={content} />;
-        case "diagram":
-            return <DiagramSlide type={type} content={content} />;
-        case "summary":
-            return <SummarySlide type={type} content={content} />;
-        default:
-            return <ContentSlide type={type} content={content} />;
+const SlideRouter: React.FC<{ slide: any }> = ({ slide }) => {
+    switch (slide.type) {
+        case "title": return <TitleSlide slide={slide} />;
+        case "content": return <ContentSlide slide={slide} />;
+        case "comparison": return <ComparisonSlide slide={slide} />;
+        case "timeline": return <TimelineSlide slide={slide} />;
+        case "statistic": return <StatisticSlide slide={slide} />;
+        case "quote": return <QuoteSlide slide={slide} />;
+        case "diagram": return <DiagramSlide slide={slide} />;
+        case "list": return <ListSlide slide={slide} />;
+        case "callout": return <CalloutSlide slide={slide} />;
+        case "summary": return <SummarySlide slide={slide} />;
+        default: return <ContentSlide slide={slide} />;
     }
 };
 
@@ -35,7 +45,7 @@ export const ExplainItVideo: React.FC<{ slides: Slide[] }> = ({ slides }) => {
                     key={slide.id}
                     durationInFrames={SLIDE_DURATION_FRAMES}
                 >
-                    <SlideRouter type={slide.type} content={slide.content} />
+                    <SlideRouter slide={slide} />
                 </Series.Sequence>
             ))}
         </Series>
@@ -44,39 +54,11 @@ export const ExplainItVideo: React.FC<{ slides: Slide[] }> = ({ slides }) => {
 
 export const RemotionRoot: React.FC = () => {
     const defaultSlides: Slide[] = [
-        {
-            id: 1,
-            type: "title",
-            content: "Understanding React Context",
-            icon: "Layout",
-        },
-        {
-            id: 2,
-            type: "content",
-            content:
-                "Prop drilling makes passing data through many layers very tedious.",
-            icon: "Layers",
-        },
-        {
-            id: 3,
-            type: "diagram",
-            content: "Context Provider vs Consumer",
-            icon: "ImageIcon",
-        },
-        {
-            id: 4,
-            type: "content",
-            content:
-                "The Provider component holds the state at the top of the tree.",
-            icon: "Layers",
-        },
-        {
-            id: 5,
-            type: "summary",
-            content:
-                "Use Context to share global state like themes or user sessions without passing props manually.",
-            icon: "Type",
-        },
+        { id: 1, type: "title", title: "How AI Works", subtitle: "A simplified overview", accent: "purple" },
+        { id: 2, type: "content", title: "Machine Learning Basics", bullets: ["Algorithms learn from data", "Models improve with training", "Predictions get more accurate over time"], accent: "blue" },
+        { id: 3, type: "statistic", title: "AI Growth", number: "97%", unit: "accuracy rate", description: "Modern LLMs achieve near-human accuracy on many benchmarks", accent: "emerald" },
+        { id: 4, type: "comparison", title: "Supervised vs Unsupervised", labelA: "Supervised", labelB: "Unsupervised", bulletsA: ["Labeled data", "Classification", "Regression"], bulletsB: ["No labels", "Clustering", "Pattern recognition"], accent: "cyan" },
+        { id: 5, type: "summary", title: "Key Takeaways", keyPoints: ["AI learns patterns from data", "Multiple approaches exist for different problems", "The field is evolving rapidly"], closingLine: "AI is transforming every industry.", accent: "purple" },
     ];
 
     return (

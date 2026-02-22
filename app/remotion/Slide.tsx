@@ -2,364 +2,260 @@ import React from "react";
 import {
     AbsoluteFill,
     interpolate,
-    spring,
     useCurrentFrame,
+    spring,
     useVideoConfig,
 } from "remotion";
 
-interface SlideProps {
-    type: string;
-    content: string;
+/* ─── Accent Colors ─── */
+const accentMap: Record<string, string> = {
+    purple: "#a855f7",
+    blue: "#3b82f6",
+    pink: "#ec4899",
+    emerald: "#10b981",
+    amber: "#f59e0b",
+    rose: "#f43f5e",
+    cyan: "#06b6d4",
+    indigo: "#6366f1",
+};
+
+function getColor(accent?: string) {
+    return accentMap[accent || "purple"] || accentMap.purple;
 }
 
-export const TitleSlide: React.FC<SlideProps> = ({ content }) => {
+/* ─── Title ─── */
+export const TitleSlide: React.FC<{ slide: any }> = ({ slide }) => {
     const frame = useCurrentFrame();
-    const { fps } = useVideoConfig();
-
-    const titleY = interpolate(
-        spring({ frame, fps, config: { damping: 200 } }),
-        [0, 1],
-        [60, 0]
-    );
-    const titleOpacity = interpolate(frame, [0, 20], [0, 1], {
-        extrapolateRight: "clamp",
-    });
-
-    const subtitleOpacity = interpolate(frame, [15, 35], [0, 1], {
-        extrapolateRight: "clamp",
-    });
+    const opacity = interpolate(frame, [0, 20], [0, 1], { extrapolateRight: "clamp" });
+    const y = interpolate(frame, [0, 25], [40, 0], { extrapolateRight: "clamp" });
+    const color = getColor(slide.accent);
 
     return (
-        <AbsoluteFill
-            style={{
-                backgroundColor: "#000",
-                justifyContent: "center",
-                alignItems: "center",
-                fontFamily: "'Inter', sans-serif",
-            }}
-        >
-            {/* Background glow */}
-            <div
-                style={{
-                    position: "absolute",
-                    width: 600,
-                    height: 600,
-                    borderRadius: "50%",
-                    background:
-                        "radial-gradient(circle, rgba(147,51,234,0.15) 0%, transparent 60%)",
-                    top: "50%",
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                }}
-            />
-
-            {/* Icon */}
-            <div
-                style={{
-                    width: 80,
-                    height: 80,
-                    borderRadius: 20,
-                    background: "linear-gradient(135deg, #9333ea, #3b82f6)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginBottom: 40,
-                    opacity: titleOpacity,
-                    boxShadow: "0 25px 50px rgba(147,51,234,0.4)",
-                }}
-            >
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="white">
-                    <path d="M8 5v14l11-7z" />
-                </svg>
-            </div>
-
-            <div
-                style={{
-                    opacity: titleOpacity,
-                    transform: `translateY(${titleY}px)`,
-                    fontSize: 72,
-                    fontWeight: 900,
-                    color: "white",
-                    textAlign: "center",
-                    maxWidth: "80%",
-                    lineHeight: 1.1,
-                    letterSpacing: -2,
-                }}
-            >
-                {content}
-            </div>
-            <div
-                style={{
-                    opacity: subtitleOpacity,
-                    fontSize: 24,
-                    color: "#9ca3af",
-                    marginTop: 24,
-                    fontWeight: 500,
-                }}
-            >
-                ExplainIt Auto-Generated Course
+        <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", alignItems: "center", justifyContent: "center", padding: 80 }}>
+            <div style={{ textAlign: "center", opacity, transform: `translateY(${y}px)` }}>
+                <div style={{ width: 70, height: 70, borderRadius: 16, background: `linear-gradient(135deg, ${color}, ${color}aa)`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 40px", boxShadow: `0 15px 40px ${color}40` }}>
+                    <span style={{ fontSize: 32, color: "#fff" }}>▶</span>
+                </div>
+                <h1 style={{ fontSize: 72, fontWeight: 900, color: "#fff", lineHeight: 1.1, fontFamily: "'Space Grotesk', Inter, sans-serif" }}>{slide.title}</h1>
+                {slide.subtitle && <p style={{ fontSize: 28, color: "#9ca3af", marginTop: 20 }}>{slide.subtitle}</p>}
             </div>
         </AbsoluteFill>
     );
 };
 
-export const ContentSlide: React.FC<SlideProps> = ({ content }) => {
+/* ─── Content ─── */
+export const ContentSlide: React.FC<{ slide: any }> = ({ slide }) => {
     const frame = useCurrentFrame();
     const { fps } = useVideoConfig();
-
-    const lineWidth = interpolate(
-        spring({ frame, fps, config: { damping: 200 } }),
-        [0, 1],
-        [0, 4]
-    );
-    const textOpacity = interpolate(frame, [5, 25], [0, 1], {
-        extrapolateRight: "clamp",
-    });
-    const textX = interpolate(frame, [5, 25], [40, 0], {
-        extrapolateRight: "clamp",
-    });
+    const color = getColor(slide.accent);
 
     return (
-        <AbsoluteFill
-            style={{
-                backgroundColor: "#000",
-                justifyContent: "center",
-                padding: "0 120px",
-                fontFamily: "'Inter', sans-serif",
-            }}
-        >
-            <div style={{ display: "flex", alignItems: "stretch", gap: 32 }}>
-                <div
-                    style={{
-                        width: lineWidth,
-                        backgroundColor: "#9333ea",
-                        borderRadius: 4,
-                        flexShrink: 0,
-                    }}
-                />
-                <div
-                    style={{
-                        opacity: textOpacity,
-                        transform: `translateX(${textX}px)`,
-                        fontSize: 56,
-                        fontWeight: 700,
-                        color: "white",
-                        lineHeight: 1.3,
-                        letterSpacing: -1,
-                    }}
-                >
-                    {content}
+        <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", alignItems: "center", padding: "80px 120px" }}>
+            <div style={{ display: "flex", gap: 32 }}>
+                <div style={{ width: 6, borderRadius: 999, background: `linear-gradient(to bottom, ${color}, transparent)`, flexShrink: 0 }} />
+                <div>
+                    <h2 style={{ fontSize: 56, fontWeight: 700, color: "#fff", opacity: interpolate(frame, [0, 15], [0, 1], { extrapolateRight: "clamp" }), fontFamily: "'Space Grotesk', sans-serif" }}>{slide.title}</h2>
+                    {(slide.bullets || []).map((b: string, i: number) => {
+                        const delay = 10 + i * 8;
+                        const op = interpolate(frame, [delay, delay + 12], [0, 1], { extrapolateRight: "clamp" });
+                        const tx = interpolate(frame, [delay, delay + 12], [30, 0], { extrapolateRight: "clamp" });
+                        return (
+                            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 16, marginTop: 28, opacity: op, transform: `translateX(${tx}px)` }}>
+                                <div style={{ width: 10, height: 10, borderRadius: 999, background: color, marginTop: 10, flexShrink: 0, boxShadow: `0 0 10px ${color}` }} />
+                                <span style={{ fontSize: 32, color: "#d1d5db" }}>{b}</span>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
         </AbsoluteFill>
     );
 };
 
-export const DiagramSlide: React.FC<SlideProps> = ({ content }) => {
+/* ─── Comparison ─── */
+export const ComparisonSlide: React.FC<{ slide: any }> = ({ slide }) => {
     const frame = useCurrentFrame();
-    const { fps } = useVideoConfig();
-
-    const textOpacity = interpolate(frame, [0, 20], [0, 1], {
-        extrapolateRight: "clamp",
-    });
-    const boxScale = interpolate(
-        spring({ frame: frame - 10, fps, config: { damping: 200 } }),
-        [0, 1],
-        [0.8, 1]
-    );
-    const boxOpacity = interpolate(frame, [10, 30], [0, 1], {
-        extrapolateRight: "clamp",
-    });
+    const color = getColor(slide.accent);
+    const titleOp = interpolate(frame, [0, 15], [0, 1], { extrapolateRight: "clamp" });
 
     return (
-        <AbsoluteFill
-            style={{
-                backgroundColor: "#000",
-                fontFamily: "'Inter', sans-serif",
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                padding: "0 80px",
-                gap: 60,
-            }}
-        >
-            <div style={{ flex: 1, opacity: textOpacity }}>
-                <div
-                    style={{
-                        fontSize: 48,
-                        fontWeight: 700,
-                        color: "white",
-                        lineHeight: 1.2,
-                        marginBottom: 16,
-                    }}
-                >
-                    {content}
+        <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80 }}>
+            <h2 style={{ fontSize: 52, fontWeight: 700, color: "#fff", marginBottom: 40, opacity: titleOp, fontFamily: "'Space Grotesk', sans-serif" }}>{slide.title}</h2>
+            <div style={{ display: "flex", gap: 24, width: "100%" }}>
+                <div style={{ flex: 1, background: `${color}20`, border: `1px solid ${color}40`, borderRadius: 24, padding: 40 }}>
+                    <h3 style={{ fontSize: 28, fontWeight: 700, color, marginBottom: 20 }}>{slide.labelA || "A"}</h3>
+                    {(slide.bulletsA || []).map((b: string, i: number) => (
+                        <p key={i} style={{ fontSize: 22, color: "#d1d5db", marginTop: 12, opacity: interpolate(frame, [15 + i * 6, 25 + i * 6], [0, 1], { extrapolateRight: "clamp" }) }}>✓ {b}</p>
+                    ))}
                 </div>
-                <div style={{ fontSize: 20, color: "#9ca3af" }}>
-                    Visualizing the concept.
-                </div>
-            </div>
-            <div
-                style={{
-                    flex: 1,
-                    opacity: boxOpacity,
-                    transform: `scale(${boxScale})`,
-                    display: "flex",
-                    justifyContent: "center",
-                }}
-            >
-                <div
-                    style={{
-                        width: 400,
-                        height: 400,
-                        borderRadius: 24,
-                        backgroundColor: "rgba(255,255,255,0.03)",
-                        border: "1px solid rgba(255,255,255,0.1)",
-                        padding: 32,
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        gap: 16,
-                        boxShadow: "0 25px 50px rgba(0,0,0,0.5)",
-                    }}
-                >
-                    <div
-                        style={{
-                            borderRadius: 16,
-                            backgroundColor: "rgba(147,51,234,0.15)",
-                            border: "1px solid rgba(147,51,234,0.4)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                        }}
-                    >
-                        <div
-                            style={{
-                                width: 20,
-                                height: 20,
-                                borderRadius: "50%",
-                                backgroundColor: "#a78bfa",
-                            }}
-                        />
-                    </div>
-                    <div
-                        style={{
-                            borderRadius: 16,
-                            backgroundColor: "rgba(59,130,246,0.15)",
-                            border: "1px solid rgba(59,130,246,0.4)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                        }}
-                    >
-                        <div
-                            style={{
-                                width: 20,
-                                height: 20,
-                                borderRadius: "50%",
-                                backgroundColor: "#60a5fa",
-                            }}
-                        />
-                    </div>
-                    <div
-                        style={{
-                            gridColumn: "span 2",
-                            borderRadius: 16,
-                            backgroundColor: "rgba(236,72,153,0.15)",
-                            border: "1px solid rgba(236,72,153,0.4)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: 8,
-                        }}
-                    >
-                        <div
-                            style={{
-                                flex: 1,
-                                height: 1,
-                                backgroundColor: "rgba(255,255,255,0.15)",
-                                marginLeft: 20,
-                            }}
-                        />
-                        <div
-                            style={{
-                                width: 10,
-                                height: 10,
-                                borderRadius: "50%",
-                                backgroundColor: "#f472b6",
-                            }}
-                        />
-                        <div
-                            style={{
-                                flex: 1,
-                                height: 1,
-                                backgroundColor: "rgba(255,255,255,0.15)",
-                                marginRight: 20,
-                            }}
-                        />
-                    </div>
+                <div style={{ flex: 1, background: "#ffffff0d", border: "1px solid #ffffff1a", borderRadius: 24, padding: 40 }}>
+                    <h3 style={{ fontSize: 28, fontWeight: 700, color: "#9ca3af", marginBottom: 20 }}>{slide.labelB || "B"}</h3>
+                    {(slide.bulletsB || []).map((b: string, i: number) => (
+                        <p key={i} style={{ fontSize: 22, color: "#d1d5db", marginTop: 12, opacity: interpolate(frame, [15 + i * 6, 25 + i * 6], [0, 1], { extrapolateRight: "clamp" }) }}>✓ {b}</p>
+                    ))}
                 </div>
             </div>
         </AbsoluteFill>
     );
 };
 
-export const SummarySlide: React.FC<SlideProps> = ({ content }) => {
+/* ─── Timeline ─── */
+export const TimelineSlide: React.FC<{ slide: any }> = ({ slide }) => {
     const frame = useCurrentFrame();
-
-    const headingOpacity = interpolate(frame, [0, 20], [0, 1], {
-        extrapolateRight: "clamp",
-    });
-    const quoteOpacity = interpolate(frame, [15, 35], [0, 1], {
-        extrapolateRight: "clamp",
-    });
-    const quoteY = interpolate(frame, [15, 35], [30, 0], {
-        extrapolateRight: "clamp",
-    });
+    const color = getColor(slide.accent);
 
     return (
-        <AbsoluteFill
-            style={{
-                backgroundColor: "#000",
-                justifyContent: "center",
-                alignItems: "center",
-                fontFamily: "'Inter', sans-serif",
-            }}
-        >
-            <div
-                style={{
-                    opacity: headingOpacity,
-                    fontSize: 64,
-                    fontWeight: 800,
-                    background: "linear-gradient(90deg, #a78bfa, #ec4899)",
-                    backgroundClip: "text",
-                    WebkitBackgroundClip: "text",
-                    color: "transparent",
-                    marginBottom: 40,
-                    letterSpacing: -2,
-                }}
-            >
-                In Summary
+        <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80 }}>
+            <h2 style={{ fontSize: 52, fontWeight: 700, color: "#fff", marginBottom: 50, opacity: interpolate(frame, [0, 15], [0, 1], { extrapolateRight: "clamp" }), fontFamily: "'Space Grotesk', sans-serif" }}>{slide.title}</h2>
+            {(slide.steps || []).map((s: any, i: number) => {
+                const delay = 10 + i * 12;
+                const op = interpolate(frame, [delay, delay + 10], [0, 1], { extrapolateRight: "clamp" });
+                return (
+                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 24, marginBottom: 20, opacity: op }}>
+                        <div style={{ width: 48, height: 48, borderRadius: 999, background: `linear-gradient(135deg, ${color}, ${color}aa)`, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: 20, flexShrink: 0, boxShadow: `0 8px 20px ${color}40` }}>{i + 1}</div>
+                        <div style={{ paddingTop: 8 }}>
+                            <p style={{ fontSize: 26, fontWeight: 700, color: "#fff" }}>{s.step}</p>
+                            <p style={{ fontSize: 20, color: "#9ca3af", marginTop: 4 }}>{s.detail}</p>
+                        </div>
+                    </div>
+                );
+            })}
+        </AbsoluteFill>
+    );
+};
+
+/* ─── Statistic ─── */
+export const StatisticSlide: React.FC<{ slide: any }> = ({ slide }) => {
+    const frame = useCurrentFrame();
+    const color = getColor(slide.accent);
+
+    return (
+        <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80, textAlign: "center" }}>
+            <p style={{ fontSize: 28, fontWeight: 700, color: "#9ca3af", marginBottom: 20, opacity: interpolate(frame, [0, 15], [0, 1], { extrapolateRight: "clamp" }), fontFamily: "'Space Grotesk', sans-serif" }}>{slide.title}</p>
+            <p style={{ fontSize: 140, fontWeight: 900, background: `linear-gradient(90deg, ${color}, ${color}cc)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", lineHeight: 1, opacity: interpolate(frame, [5, 20], [0, 1], { extrapolateRight: "clamp" }), fontFamily: "'Space Grotesk', sans-serif" }}>{slide.number}</p>
+            {slide.unit && <p style={{ fontSize: 28, color, marginTop: 10, fontWeight: 600 }}>{slide.unit}</p>}
+            {slide.description && <p style={{ fontSize: 24, color: "#9ca3af", marginTop: 20, maxWidth: 600 }}>{slide.description}</p>}
+        </AbsoluteFill>
+    );
+};
+
+/* ─── Quote ─── */
+export const QuoteSlide: React.FC<{ slide: any }> = ({ slide }) => {
+    const frame = useCurrentFrame();
+    const color = getColor(slide.accent);
+
+    return (
+        <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", alignItems: "center", justifyContent: "center", padding: 100 }}>
+            <div style={{ textAlign: "center", opacity: interpolate(frame, [0, 20], [0, 1], { extrapolateRight: "clamp" }) }}>
+                <p style={{ fontSize: 120, color: `${color}40`, lineHeight: 0.5, fontFamily: "Georgia, serif" }}>&ldquo;</p>
+                <p style={{ fontSize: 40, color: "#fff", fontWeight: 500, lineHeight: 1.4, maxWidth: 900, margin: "20px auto" }}>{slide.quote}</p>
+                {slide.attribution && <p style={{ fontSize: 22, color, marginTop: 30, fontWeight: 600 }}>— {slide.attribution}</p>}
             </div>
-            <div
-                style={{
-                    opacity: quoteOpacity,
-                    transform: `translateY(${quoteY}px)`,
-                    fontSize: 32,
-                    fontWeight: 500,
-                    color: "white",
-                    textAlign: "center",
-                    maxWidth: "70%",
-                    lineHeight: 1.5,
-                    backgroundColor: "rgba(255,255,255,0.03)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    borderRadius: 24,
-                    padding: "40px 48px",
-                    backdropFilter: "blur(10px)",
-                    boxShadow: "0 25px 50px rgba(0,0,0,0.3)",
-                }}
-            >
-                "{content}"
+        </AbsoluteFill>
+    );
+};
+
+/* ─── Diagram ─── */
+export const DiagramSlide: React.FC<{ slide: any }> = ({ slide }) => {
+    const frame = useCurrentFrame();
+    const color = getColor(slide.accent);
+
+    return (
+        <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", alignItems: "center", justifyContent: "center", padding: 80 }}>
+            <div style={{ display: "flex", gap: 60, width: "100%", alignItems: "center" }}>
+                <div style={{ flex: 1, opacity: interpolate(frame, [0, 15], [0, 1], { extrapolateRight: "clamp" }) }}>
+                    <h2 style={{ fontSize: 52, fontWeight: 700, color: "#fff", fontFamily: "'Space Grotesk', sans-serif" }}>{slide.title}</h2>
+                    {slide.description && <p style={{ fontSize: 22, color: "#9ca3af", marginTop: 16 }}>{slide.description}</p>}
+                </div>
+                <div style={{ flex: 1, background: `${color}15`, border: `1px solid ${color}30`, borderRadius: 24, padding: 40 }}>
+                    {(slide.nodes || []).map((node: any, i: number) => {
+                        const delay = 10 + i * 8;
+                        const op = interpolate(frame, [delay, delay + 10], [0, 1], { extrapolateRight: "clamp" });
+                        return (
+                            <React.Fragment key={i}>
+                                <div style={{ background: "#ffffff1a", border: "1px solid #ffffff1a", borderRadius: 12, padding: "16px 24px", textAlign: "center", color: "#fff", fontWeight: 600, fontSize: 20, opacity: op }}>{node.label}</div>
+                                {i < (slide.nodes || []).length - 1 && (
+                                    <div style={{ display: "flex", justifyContent: "center", padding: "8px 0" }}>
+                                        <div style={{ width: 2, height: 24, background: `${color}50` }} />
+                                    </div>
+                                )}
+                            </React.Fragment>
+                        );
+                    })}
+                </div>
             </div>
+        </AbsoluteFill>
+    );
+};
+
+/* ─── List ─── */
+export const ListSlide: React.FC<{ slide: any }> = ({ slide }) => {
+    const frame = useCurrentFrame();
+    const color = getColor(slide.accent);
+
+    return (
+        <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80 }}>
+            <h2 style={{ fontSize: 52, fontWeight: 700, color: "#fff", marginBottom: 40, opacity: interpolate(frame, [0, 15], [0, 1], { extrapolateRight: "clamp" }), fontFamily: "'Space Grotesk', sans-serif" }}>{slide.title}</h2>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, width: "100%" }}>
+                {(slide.items || []).map((item: any, i: number) => {
+                    const delay = 8 + i * 6;
+                    const op = interpolate(frame, [delay, delay + 10], [0, 1], { extrapolateRight: "clamp" });
+                    return (
+                        <div key={i} style={{ background: "#ffffff0d", border: "1px solid #ffffff1a", borderRadius: 16, padding: 24, opacity: op }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                                <div style={{ width: 32, height: 32, borderRadius: 8, background: `linear-gradient(135deg, ${color}, ${color}aa)`, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: 14 }}>{i + 1}</div>
+                                <span style={{ fontSize: 22, fontWeight: 700, color: "#fff" }}>{item.term}</span>
+                            </div>
+                            <p style={{ fontSize: 18, color: "#9ca3af", marginTop: 8, paddingLeft: 44 }}>{item.definition}</p>
+                        </div>
+                    );
+                })}
+            </div>
+        </AbsoluteFill>
+    );
+};
+
+/* ─── Callout ─── */
+export const CalloutSlide: React.FC<{ slide: any }> = ({ slide }) => {
+    const frame = useCurrentFrame();
+    const color = getColor(slide.accent);
+    const labels: Record<string, string> = { tip: "💡 Pro Tip", warning: "⚠️ Warning", insight: "✨ Key Insight" };
+
+    return (
+        <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", alignItems: "center", justifyContent: "center", padding: 100 }}>
+            <div style={{ textAlign: "center", opacity: interpolate(frame, [0, 20], [0, 1], { extrapolateRight: "clamp" }) }}>
+                <p style={{ fontSize: 20, fontWeight: 700, color, textTransform: "uppercase", letterSpacing: 4, marginBottom: 30 }}>{labels[slide.calloutType] || "✨ Note"}</p>
+                <div style={{ background: `${color}15`, border: `1px solid ${color}30`, borderRadius: 24, padding: "60px 80px" }}>
+                    <p style={{ fontSize: 36, color: "#fff", fontWeight: 500, lineHeight: 1.5 }}>{slide.message}</p>
+                </div>
+            </div>
+        </AbsoluteFill>
+    );
+};
+
+/* ─── Summary ─── */
+export const SummarySlide: React.FC<{ slide: any }> = ({ slide }) => {
+    const frame = useCurrentFrame();
+    const color = getColor(slide.accent);
+
+    return (
+        <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80, textAlign: "center" }}>
+            <h2 style={{ fontSize: 64, fontWeight: 700, background: `linear-gradient(90deg, ${color}, ${color}cc)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: 40, opacity: interpolate(frame, [0, 15], [0, 1], { extrapolateRight: "clamp" }), fontFamily: "'Space Grotesk', sans-serif" }}>{slide.title || "Key Takeaways"}</h2>
+            {(slide.keyPoints || []).map((point: string, i: number) => {
+                const delay = 10 + i * 8;
+                const op = interpolate(frame, [delay, delay + 10], [0, 1], { extrapolateRight: "clamp" });
+                return (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 16, background: "#ffffff0d", border: "1px solid #ffffff1a", borderRadius: 16, padding: "20px 32px", marginBottom: 12, width: "100%", maxWidth: 800, textAlign: "left", opacity: op }}>
+                        <div style={{ width: 36, height: 36, borderRadius: 10, background: `linear-gradient(135deg, ${color}, ${color}aa)`, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, flexShrink: 0 }}>{i + 1}</div>
+                        <p style={{ fontSize: 22, color: "#d1d5db" }}>{point}</p>
+                    </div>
+                );
+            })}
+            {slide.closingLine && (
+                <div style={{ background: `${color}15`, border: `1px solid ${color}30`, borderRadius: 16, padding: "24px 40px", marginTop: 20, maxWidth: 800 }}>
+                    <p style={{ fontSize: 24, color: "#fff", fontWeight: 500 }}>&ldquo;{slide.closingLine}&rdquo;</p>
+                </div>
+            )}
         </AbsoluteFill>
     );
 };
