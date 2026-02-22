@@ -1,86 +1,94 @@
-import { NextResponse } from 'next/server';
-import path from 'path';
-import fs from 'fs';
-import os from 'os';
+import { NextResponse } from "next/server";
+
+// NOTE: Remotion server-side rendering requires @remotion/renderer and @remotion/bundler
+// which depend on platform-specific binaries (ffmpeg, Chromium). These cannot run on
+// Vercel's serverless functions. For production MP4 export, use Remotion Lambda or
+// a dedicated rendering server.
+//
+// This route returns a helpful message in production and works locally when deps are available.
 
 export async function POST(req: Request) {
     try {
         const { slides } = await req.json();
 
         if (!slides || slides.length === 0) {
-            return NextResponse.json({ error: "Slides are required" }, { status: 400 });
+            return NextResponse.json(
+                { error: "No slides provided" },
+                { status: 400 }
+            );
         }
 
-        // Dynamic import to avoid client-side bundling issues
-        const { bundle } = await import('@remotion/bundler');
-        const { renderMedia, selectComposition } = await import('@remotion/renderer');
+        // Check if we're in a serverless environment
+        const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
 
-        const SLIDE_DURATION_FRAMES = 90;
-        const durationInFrames = slides.length * SLIDE_DURATION_FRAMES;
+        if (isServerless) {
+            return NextResponse.json(
+                {
+                    error: "Video export is not available in serverless environments",
+                    details: "MP4 export requires a dedicated rendering server with ffmpeg and Chromium. Use the local development server or set up Remotion Lambda for cloud rendering.",
+                    suggestion: "Run the app locally with `npm run dev` to export videos, or integrate Remotion Lambda for cloud-based rendering."
+                },
+                { status: 501 }
+            );
+        }
 
-        // Bundle the Remotion project
+        // Dynamic imports to avoid bundling issues on serverless
+        const { bundle } = await import("@remotion/bundler");
+        const { renderMedia, selectComposition } = await import("@remotion/renderer");
+        const path = await import("path");
+        const fs = await import("fs");
+        const os = await import("os");
+
+        const COMP_NAME = "ExplainItVideo";
+        const FPS = 30;
+        const SLIDE_DURATION_FRAMES = 150;
+
+        const entryPoint = path.join(process.cwd(), "remotion", "index.ts");
         const bundleLocation = await bundle({
-            entryPoint: path.resolve(process.cwd(), 'remotion/index.ts'),
+            entryPoint,
             webpackOverride: (config) => config,
         });
 
-        // Select the composition
+        const inputProps = { slides };
         const composition = await selectComposition({
             serveUrl: bundleLocation,
-            id: 'ExplainItVideo',
-            inputProps: { slides },
+            id: COMP_NAME,
+            inputProps,
         });
 
-        // Override with correct duration based on actual slides
-        composition.durationInFrames = durationInFrames;
-        composition.fps = 30;
+        composition.durationInFrames = slides.length * SLIDE_DURATION_FRAMES;
+        composition.fps = FPS;
         composition.width = 1920;
         composition.height = 1080;
 
-        // Render the video
-        const outputDir = path.join(os.tmpdir(), 'explainit-exports');
-        if (!fs.existsSync(outputDir)) {
-            fs.mkdirSync(outputDir, { recursive: true });
-        }
-
-        const outputPath = path.join(outputDir, `explainit-${Date.now()}.mp4`);
+        const tmpDir = os.tmpdir();
+        const outputLocation = path.join(tmpDir, `explainit-${Date.now()}.mp4`);
 
         await renderMedia({
             composition,
             serveUrl: bundleLocation,
-            codec: 'h264',
-            outputLocation: outputPath,
-            inputProps: { slides },
+            codec: "h264",
+            outputLocation,
+            inputProps,
         });
 
-        // Read the file and return as a downloadable response
-        const fileBuffer = fs.readFileSync(outputPath);
-
-        // Clean up the temp file
-        fs.unlinkSync(outputPath);
+        const fileBuffer = fs.readFileSync(outputLocation);
+        fs.unlinkSync(outputLocation);
 
         return new NextResponse(fileBuffer, {
-            status: 200,
             headers: {
-                'Content-Type': 'video/mp4',
-                'Content-Disposition': `attachment; filename="explainit-presentation.mp4"`,
-                'Content-Length': fileBuffer.length.toString(),
+                "Content-Type": "video/mp4",
+                "Content-Disposition": 'attachment; filename="explainit-presentation.mp4"',
             },
         });
     } catch (error: any) {
-        console.error("Error rendering video:", error);
+        console.error("Export error:", error);
         return NextResponse.json(
-            { error: "Failed to render video", details: error?.message },
+            {
+                error: "Export failed",
+                details: error?.message || "Unknown error",
+            },
             { status: 500 }
         );
     }
 }
-
-// Allow larger request body for slides data
-export const config = {
-    api: {
-        bodyParser: {
-            sizeLimit: '10mb',
-        },
-    },
-};
