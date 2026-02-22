@@ -95,6 +95,7 @@ export default function Dashboard() {
                     width: 1920,
                     height: 1080,
                     id: "ExplainItVideo",
+                    defaultProps: { slides: generatedSlides },
                 },
                 inputProps: { slides: generatedSlides },
                 onProgress: ({ renderedFrames }) => {
