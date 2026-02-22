@@ -11,60 +11,51 @@ export async function POST(req: Request) {
             );
         }
 
-        const prompt = `You are ExplainIt, a world-class educational content designer. Your job is to transform a raw script into a visually stunning, structured presentation with rich, varied slide types.
+        const prompt = `You are ExplainIt, a world-class educational content designer and visual storyteller. Your job is to transform raw text into a RICH, DETAILED, VISUALLY DIVERSE presentation that feels like a premium educational video.
 
-IMPORTANT RULES:
-1. Do NOT just copy the user's text verbatim onto slides. REWRITE and RESTRUCTURE the content to be educational, engaging, and visual.
-2. Add insights, examples, and structure that go BEYOND what the user wrote — you are an expert educator.
-3. Use a VARIETY of slide types — never use the same type twice in a row.
-4. Each slide should feel unique with different layouts and purposes.
-5. Generate 6-12 slides depending on content complexity.
+CRITICAL RULES:
+1. Do NOT just copy the user's text. REWRITE, EXPAND, and ENRICH the content with your own expert knowledge.
+2. Add examples, analogies, data, and insights that go FAR BEYOND what the user wrote.
+3. Generate 12-20 slides — MORE content is BETTER. Make it thorough and educational.
+4. NEVER use the same slide type twice in a row.
+5. Use a WIDE VARIETY of types — the more visual diversity, the better.
+6. Each slide should have a unique accent color.
 
-AVAILABLE SLIDE TYPES:
+AVAILABLE SLIDE TYPES (use as many different types as possible):
 
-1. "title" — Opening splash slide
-   Required fields: title, subtitle
-   
-2. "content" — Key point with supporting bullets
-   Required fields: title, bullets (array of 3-4 short points)
-   
-3. "comparison" — Side-by-side A vs B
-   Required fields: title, labelA, labelB, bulletsA (array), bulletsB (array)
-   
-4. "timeline" — Step-by-step process or sequence
-   Required fields: title, steps (array of {step: string, detail: string})
-   
-5. "statistic" — A key number or data point
-   Required fields: title, number (string like "93%" or "2.5M"), unit (string), description
-   
-6. "quote" — Important quote or key insight
-   Required fields: title, quote, attribution
-   
-7. "diagram" — A flowchart or process
-   Required fields: title, nodes (array of {label: string}), description
-   
-8. "list" — Checklist or key terms with definitions
-   Required fields: title, items (array of {term: string, definition: string})
-   
-9. "callout" — Important tip, warning, or insight
-   Required fields: title, calloutType ("tip" | "warning" | "insight"), message
-   
-10. "summary" — Closing takeaway
-    Required fields: title, keyPoints (array of strings), closingLine
+"title" — Opening splash. Fields: title, subtitle
+"content" — Key point + bullets. Fields: title, bullets[]
+"comparison" — Side-by-side A vs B. Fields: title, labelA, labelB, bulletsA[], bulletsB[]
+"timeline" — Step-by-step process. Fields: title, steps[{step, detail}]
+"statistic" — Big number/data. Fields: title, number, unit, description
+"quote" — Key insight/quote. Fields: title, quote, attribution
+"diagram" — Flowchart. Fields: title, nodes[{label}], description
+"list" — Terms + definitions. Fields: title, items[{term, definition}]
+"callout" — Tip/warning/insight card. Fields: title, calloutType("tip"|"warning"|"insight"), message
+"code" — Code example. Fields: title, language, code, explanation
+"definition" — Term definition card. Fields: title, term, definition, example
+"pros_cons" — Pros vs Cons. Fields: title, pros[], cons[]
+"equation" — Formula/equation. Fields: title, equation, explanation
+"mindmap" — Central idea + branches. Fields: title, center, branches[{label, children[]}]
+"table" — Data table. Fields: title, headers[], rows[][]
+"example" — Real-world example. Fields: title, scenario, explanation, lesson
+"funfact" — Surprising fact. Fields: title, fact, source
+"steps" — Horizontal numbered steps. Fields: title, steps[]
+"highlight" — Single big emphasis word/phrase. Fields: title, highlight, subtext
+"summary" — Closing takeaways. Fields: title, keyPoints[], closingLine
 
-ACCENT COLORS — assign one per slide (vary them):
-"purple", "blue", "pink", "emerald", "amber", "rose", "cyan", "indigo"
+You are NOT limited to these types. If the content calls for a different type, INVENT one — just provide a "type" string and whatever fields make sense. The renderer will handle unknown types gracefully.
 
-RESPONSE FORMAT — Respond ONLY with a valid JSON array. No markdown, no explanation:
+ACCENT COLORS — vary these across slides:
+"purple", "blue", "pink", "emerald", "amber", "rose", "cyan", "indigo", "violet", "teal", "orange", "lime"
+
+RESPONSE FORMAT — JSON array only. No markdown, no explanation:
 [
-  {"id": 1, "type": "title", "title": "How Photosynthesis Works", "subtitle": "The engine of life on Earth", "accent": "emerald"},
-  {"id": 2, "type": "statistic", "title": "Energy Production", "number": "6CO₂", "unit": "+ 6H₂O → C₆H₁₂O₆", "description": "The fundamental equation that powers all plant life", "accent": "blue"},
-  {"id": 3, "type": "timeline", "title": "The Process", "steps": [{"step": "Light Absorption", "detail": "Chlorophyll captures photons from sunlight"}, {"step": "Water Splitting", "detail": "H₂O molecules are broken into hydrogen and oxygen"}, {"step": "Sugar Synthesis", "detail": "Carbon dioxide is converted into glucose"}], "accent": "purple"},
-  {"id": 4, "type": "comparison", "title": "Light vs Dark Reactions", "labelA": "Light Reactions", "labelB": "Dark Reactions", "bulletsA": ["Require sunlight", "Occur in thylakoids", "Produce ATP & NADPH"], "bulletsB": ["Don't need light", "Occur in stroma", "Produce glucose"], "accent": "cyan"},
-  {"id": 5, "type": "summary", "title": "Key Takeaways", "keyPoints": ["Photosynthesis converts light energy to chemical energy", "It produces both glucose and oxygen", "It's essential for nearly all life on Earth"], "closingLine": "Without photosynthesis, life as we know it would not exist.", "accent": "emerald"}
+  {"id": 1, "type": "title", "title": "...", "subtitle": "...", "accent": "..."},
+  ...
 ]
 
-Here is the script to transform:
+Here is the script to transform into a rich, educational, visually diverse presentation:
 """
 ${script}
 """`;
@@ -78,12 +69,12 @@ ${script}
                 "X-Title": "ExplainIt",
             },
             body: JSON.stringify({
-                model: "anthropic/claude-opus-4",
+                model: "anthropic/claude-opus-4.6",
                 messages: [
                     { role: "user", content: prompt },
                 ],
-                temperature: 0.7,
-                max_tokens: 4096,
+                temperature: 0.75,
+                max_tokens: 8192,
             }),
         });
 
@@ -109,7 +100,6 @@ ${script}
             return NextResponse.json({ slides: fallbackParse(script), _fallback: true });
         }
 
-        // Ensure IDs are sequential
         slides = slides.map((slide: any, index: number) => ({
             ...slide,
             id: index + 1,
@@ -118,7 +108,6 @@ ${script}
         return NextResponse.json({ slides });
     } catch (error: any) {
         console.error("Generation error:", error);
-
         try {
             const body = await req.clone().json();
             return NextResponse.json({ slides: fallbackParse(body.script), _fallback: true });
@@ -131,78 +120,34 @@ ${script}
     }
 }
 
-// Fallback parser — generates varied slide types from raw text
 function fallbackParse(script: string) {
-    const sentences = script
-        .split(/[.!?]+/)
-        .map((s: string) => s.trim())
-        .filter((s: string) => s.length > 0);
-
-    const accents = ["purple", "blue", "pink", "emerald", "amber", "cyan", "indigo", "rose"];
-
+    const sentences = script.split(/[.!?]+/).map((s: string) => s.trim()).filter((s: string) => s.length > 0);
+    const accents = ["purple", "blue", "pink", "emerald", "amber", "cyan", "indigo", "rose", "teal", "violet"];
     const slides: any[] = [];
 
-    // Title slide
-    slides.push({
-        id: 1,
-        type: "title",
-        title: sentences[0] || "Untitled Presentation",
-        subtitle: "Generated by ExplainIt",
-        accent: "purple",
-    });
+    slides.push({ id: 1, type: "title", title: sentences[0] || "Untitled", subtitle: "Generated by ExplainIt", accent: "purple" });
 
-    // Content slides from middle sentences
-    for (let i = 1; i < sentences.length - 1 && i < 7; i++) {
-        const types = ["content", "callout", "content", "list", "content", "quote"];
+    const types = ["content", "callout", "definition", "highlight", "content", "pros_cons", "funfact", "content", "quote", "example"];
+    for (let i = 1; i < sentences.length - 1 && i < 15; i++) {
         const type = types[(i - 1) % types.length];
         const accent = accents[i % accents.length];
-
         if (type === "content") {
-            slides.push({
-                id: slides.length + 1,
-                type: "content",
-                title: `Key Point ${Math.ceil(i / 2)}`,
-                bullets: [sentences[i], sentences[i + 1] || ""].filter(Boolean),
-                accent,
-            });
+            slides.push({ id: slides.length + 1, type: "content", title: `Key Point`, bullets: [sentences[i]], accent });
         } else if (type === "callout") {
-            slides.push({
-                id: slides.length + 1,
-                type: "callout",
-                title: "Important",
-                calloutType: "insight",
-                message: sentences[i],
-                accent,
-            });
+            slides.push({ id: slides.length + 1, type: "callout", title: "Important", calloutType: "insight", message: sentences[i], accent });
+        } else if (type === "definition") {
+            slides.push({ id: slides.length + 1, type: "definition", title: "Definition", term: sentences[i].split(" ").slice(0, 3).join(" "), definition: sentences[i], example: "", accent });
+        } else if (type === "highlight") {
+            slides.push({ id: slides.length + 1, type: "highlight", title: "", highlight: sentences[i].split(" ").slice(0, 4).join(" "), subtext: sentences[i], accent });
+        } else if (type === "funfact") {
+            slides.push({ id: slides.length + 1, type: "funfact", title: "Did You Know?", fact: sentences[i], source: "", accent });
         } else if (type === "quote") {
-            slides.push({
-                id: slides.length + 1,
-                type: "quote",
-                title: "Key Insight",
-                quote: sentences[i],
-                attribution: "ExplainIt",
-                accent,
-            });
+            slides.push({ id: slides.length + 1, type: "quote", title: "Key Insight", quote: sentences[i], attribution: "", accent });
         } else {
-            slides.push({
-                id: slides.length + 1,
-                type: "list",
-                title: "Key Terms",
-                items: [{ term: "Point", definition: sentences[i] }],
-                accent,
-            });
+            slides.push({ id: slides.length + 1, type: "content", title: "Point", bullets: [sentences[i]], accent });
         }
     }
 
-    // Summary slide
-    slides.push({
-        id: slides.length + 1,
-        type: "summary",
-        title: "Summary",
-        keyPoints: sentences.slice(0, 3),
-        closingLine: sentences[sentences.length - 1] || "That's a wrap!",
-        accent: "emerald",
-    });
-
+    slides.push({ id: slides.length + 1, type: "summary", title: "Summary", keyPoints: sentences.slice(0, 3), closingLine: sentences[sentences.length - 1] || "That's a wrap!", accent: "emerald" });
     return slides;
 }

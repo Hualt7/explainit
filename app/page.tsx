@@ -21,7 +21,7 @@ const fadeUp = {
 export default function Home() {
   return (
     <div className="min-h-screen bg-black text-white selection:bg-purple-500/30 relative">
-      <SpotlightCursor config={{ spotlightSize: 350, spotlightIntensity: 0.7, glowColor: "147, 51, 234", pulseSpeed: 4000 }} />
+      <SpotlightCursor config={{ spotlightSize: 500, spotlightIntensity: 1.0, glowColor: "147, 100, 255", pulseSpeed: 3000 }} />
 
       {/* Navigation */}
       <nav className="flex items-center justify-between px-6 py-4 lg:px-12 border-b border-white/10 backdrop-blur-md sticky top-0 z-50 bg-black/50">

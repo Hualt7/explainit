@@ -1,45 +1,39 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Play, Pause, SkipBack, SkipForward, ArrowLeft, Download, CheckCircle, AlertTriangle, Lightbulb, ArrowRight as ArrowRightIcon } from "lucide-react"
+import { Play, Pause, SkipBack, SkipForward, ArrowLeft, Download, CheckCircle, AlertTriangle, Lightbulb, Volume2, VolumeX, X as XIcon, ThumbsUp, ThumbsDown } from "lucide-react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { animate, stagger } from "animejs"
 
 /* ─── Accent color map ─── */
-const accentColors: Record<string, { gradient: string; bg: string; border: string; text: string; glow: string }> = {
-    purple: { gradient: "from-purple-500 to-violet-600", bg: "bg-purple-500/15", border: "border-purple-500/30", text: "text-purple-400", glow: "shadow-purple-500/30" },
-    blue: { gradient: "from-blue-500 to-cyan-500", bg: "bg-blue-500/15", border: "border-blue-500/30", text: "text-blue-400", glow: "shadow-blue-500/30" },
-    pink: { gradient: "from-pink-500 to-rose-500", bg: "bg-pink-500/15", border: "border-pink-500/30", text: "text-pink-400", glow: "shadow-pink-500/30" },
-    emerald: { gradient: "from-emerald-500 to-teal-500", bg: "bg-emerald-500/15", border: "border-emerald-500/30", text: "text-emerald-400", glow: "shadow-emerald-500/30" },
-    amber: { gradient: "from-amber-500 to-orange-500", bg: "bg-amber-500/15", border: "border-amber-500/30", text: "text-amber-400", glow: "shadow-amber-500/30" },
-    rose: { gradient: "from-rose-500 to-pink-600", bg: "bg-rose-500/15", border: "border-rose-500/30", text: "text-rose-400", glow: "shadow-rose-500/30" },
-    cyan: { gradient: "from-cyan-500 to-blue-500", bg: "bg-cyan-500/15", border: "border-cyan-500/30", text: "text-cyan-400", glow: "shadow-cyan-500/30" },
-    indigo: { gradient: "from-indigo-500 to-purple-600", bg: "bg-indigo-500/15", border: "border-indigo-500/30", text: "text-indigo-400", glow: "shadow-indigo-500/30" },
+const accentColors: Record<string, { gradient: string; bg: string; border: string; text: string; glow: string; rgb: string }> = {
+    purple: { gradient: "from-purple-500 to-violet-600", bg: "bg-purple-500/15", border: "border-purple-500/30", text: "text-purple-400", glow: "shadow-purple-500/30", rgb: "147,51,234" },
+    blue: { gradient: "from-blue-500 to-cyan-500", bg: "bg-blue-500/15", border: "border-blue-500/30", text: "text-blue-400", glow: "shadow-blue-500/30", rgb: "59,130,246" },
+    pink: { gradient: "from-pink-500 to-rose-500", bg: "bg-pink-500/15", border: "border-pink-500/30", text: "text-pink-400", glow: "shadow-pink-500/30", rgb: "236,72,153" },
+    emerald: { gradient: "from-emerald-500 to-teal-500", bg: "bg-emerald-500/15", border: "border-emerald-500/30", text: "text-emerald-400", glow: "shadow-emerald-500/30", rgb: "16,185,129" },
+    amber: { gradient: "from-amber-500 to-orange-500", bg: "bg-amber-500/15", border: "border-amber-500/30", text: "text-amber-400", glow: "shadow-amber-500/30", rgb: "245,158,11" },
+    rose: { gradient: "from-rose-500 to-pink-600", bg: "bg-rose-500/15", border: "border-rose-500/30", text: "text-rose-400", glow: "shadow-rose-500/30", rgb: "244,63,94" },
+    cyan: { gradient: "from-cyan-500 to-blue-500", bg: "bg-cyan-500/15", border: "border-cyan-500/30", text: "text-cyan-400", glow: "shadow-cyan-500/30", rgb: "6,182,212" },
+    indigo: { gradient: "from-indigo-500 to-purple-600", bg: "bg-indigo-500/15", border: "border-indigo-500/30", text: "text-indigo-400", glow: "shadow-indigo-500/30", rgb: "99,102,241" },
+    violet: { gradient: "from-violet-500 to-purple-500", bg: "bg-violet-500/15", border: "border-violet-500/30", text: "text-violet-400", glow: "shadow-violet-500/30", rgb: "139,92,246" },
+    teal: { gradient: "from-teal-500 to-emerald-500", bg: "bg-teal-500/15", border: "border-teal-500/30", text: "text-teal-400", glow: "shadow-teal-500/30", rgb: "20,184,166" },
+    orange: { gradient: "from-orange-500 to-amber-500", bg: "bg-orange-500/15", border: "border-orange-500/30", text: "text-orange-400", glow: "shadow-orange-500/30", rgb: "249,115,22" },
+    lime: { gradient: "from-lime-500 to-green-500", bg: "bg-lime-500/15", border: "border-lime-500/30", text: "text-lime-400", glow: "shadow-lime-500/30", rgb: "132,204,22" },
 };
+function getAccent(accent?: string) { return accentColors[accent || "purple"] || accentColors.purple; }
+const SF = { fontFamily: "var(--font-space-grotesk), 'Space Grotesk', sans-serif" };
 
-function getAccent(accent?: string) {
-    return accentColors[accent || "purple"] || accentColors.purple;
-}
-
-/* ─── Slide Renderers ─── */
+/* ═══════════════ SLIDE RENDERERS ═══════════════ */
 
 function TitleSlide({ slide }: { slide: any }) {
     const a = getAccent(slide.accent);
     return (
         <div className="text-center z-10 max-w-5xl mx-auto space-y-8">
-            <div className={`animate-in inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-tr ${a.gradient} mb-4 shadow-2xl ${a.glow}`}>
-                <Play className="w-9 h-9 text-white ml-1" />
-            </div>
-            <h1 className="animate-in text-5xl md:text-8xl font-black tracking-tight leading-[1.05]" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                {slide.title}
-            </h1>
-            {slide.subtitle && (
-                <p className="animate-in text-xl md:text-2xl text-gray-400 font-medium max-w-2xl mx-auto">{slide.subtitle}</p>
-            )}
-            <div className="animate-in flex items-center justify-center gap-2 mt-4">
-                <span className={`h-1 w-16 rounded-full bg-gradient-to-r ${a.gradient}`}></span>
-            </div>
+            <div className={`animate-in inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-tr ${a.gradient} mb-4 shadow-2xl ${a.glow}`}><Play className="w-9 h-9 text-white ml-1" /></div>
+            <h1 className="animate-in text-5xl md:text-8xl font-black tracking-tight leading-[1.05]" style={SF}>{slide.title}</h1>
+            {slide.subtitle && <p className="animate-in text-xl md:text-2xl text-gray-400 font-medium max-w-2xl mx-auto">{slide.subtitle}</p>}
+            <div className="animate-in flex items-center justify-center gap-2 mt-4"><span className={`h-1 w-16 rounded-full bg-gradient-to-r ${a.gradient}`}></span></div>
         </div>
     );
 }
@@ -51,22 +45,13 @@ function ContentSlide({ slide }: { slide: any }) {
             <div className="flex items-stretch gap-8">
                 <div className={`animate-in w-1.5 rounded-full bg-gradient-to-b ${a.gradient} flex-shrink-0`}></div>
                 <div className="space-y-8">
-                    <h2 className="animate-in text-3xl md:text-5xl font-bold leading-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                        {slide.title}
-                    </h2>
-                    {slide.bullets && (
-                        <ul className="space-y-4">
-                            {slide.bullets.map((b: string, i: number) => (
-                                <li key={i} className="animate-in flex items-start gap-4 text-lg md:text-2xl text-gray-300">
-                                    <span className={`mt-2 w-2.5 h-2.5 rounded-full bg-gradient-to-r ${a.gradient} flex-shrink-0 shadow-lg ${a.glow}`}></span>
-                                    <span>{b}</span>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                    {slide.content && !slide.bullets && (
-                        <p className="animate-in text-xl md:text-3xl text-gray-300 leading-relaxed">{slide.content}</p>
-                    )}
+                    <h2 className="animate-in text-3xl md:text-5xl font-bold leading-tight" style={SF}>{slide.title}</h2>
+                    {slide.bullets && <ul className="space-y-4">{slide.bullets.map((b: string, i: number) => (
+                        <li key={i} className="animate-in flex items-start gap-4 text-lg md:text-2xl text-gray-300">
+                            <span className={`mt-2 w-2.5 h-2.5 rounded-full bg-gradient-to-r ${a.gradient} flex-shrink-0 shadow-lg ${a.glow}`}></span><span>{b}</span>
+                        </li>
+                    ))}</ul>}
+                    {slide.content && !slide.bullets && <p className="animate-in text-xl md:text-3xl text-gray-300 leading-relaxed">{slide.content}</p>}
                 </div>
             </div>
         </div>
@@ -77,33 +62,15 @@ function ComparisonSlide({ slide }: { slide: any }) {
     const a = getAccent(slide.accent);
     return (
         <div className="z-10 w-full max-w-6xl space-y-8">
-            <h2 className="animate-in text-3xl md:text-5xl font-bold text-center" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                {slide.title}
-            </h2>
+            <h2 className="animate-in text-3xl md:text-5xl font-bold text-center" style={SF}>{slide.title}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Side A */}
                 <div className={`animate-in rounded-2xl ${a.bg} border ${a.border} p-8 space-y-5`}>
-                    <h3 className={`text-2xl font-bold ${a.text}`}>{slide.labelA || "Option A"}</h3>
-                    <ul className="space-y-3">
-                        {(slide.bulletsA || []).map((b: string, i: number) => (
-                            <li key={i} className="animate-in flex items-start gap-3 text-lg text-gray-300">
-                                <CheckCircle className={`w-5 h-5 mt-0.5 ${a.text} flex-shrink-0`} />
-                                <span>{b}</span>
-                            </li>
-                        ))}
-                    </ul>
+                    <h3 className={`text-2xl font-bold ${a.text}`}>{slide.labelA || "A"}</h3>
+                    <ul className="space-y-3">{(slide.bulletsA || []).map((b: string, i: number) => (<li key={i} className="animate-in flex items-start gap-3 text-lg text-gray-300"><CheckCircle className={`w-5 h-5 mt-0.5 ${a.text} flex-shrink-0`} /><span>{b}</span></li>))}</ul>
                 </div>
-                {/* Side B */}
                 <div className="animate-in rounded-2xl bg-white/5 border border-white/10 p-8 space-y-5">
-                    <h3 className="text-2xl font-bold text-gray-300">{slide.labelB || "Option B"}</h3>
-                    <ul className="space-y-3">
-                        {(slide.bulletsB || []).map((b: string, i: number) => (
-                            <li key={i} className="animate-in flex items-start gap-3 text-lg text-gray-300">
-                                <CheckCircle className="w-5 h-5 mt-0.5 text-gray-500 flex-shrink-0" />
-                                <span>{b}</span>
-                            </li>
-                        ))}
-                    </ul>
+                    <h3 className="text-2xl font-bold text-gray-300">{slide.labelB || "B"}</h3>
+                    <ul className="space-y-3">{(slide.bulletsB || []).map((b: string, i: number) => (<li key={i} className="animate-in flex items-start gap-3 text-lg text-gray-300"><CheckCircle className="w-5 h-5 mt-0.5 text-gray-500 flex-shrink-0" /><span>{b}</span></li>))}</ul>
                 </div>
             </div>
         </div>
@@ -114,79 +81,28 @@ function TimelineSlide({ slide }: { slide: any }) {
     const a = getAccent(slide.accent);
     return (
         <div className="z-10 w-full max-w-5xl space-y-8">
-            <h2 className="animate-in text-3xl md:text-5xl font-bold text-center" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                {slide.title}
-            </h2>
-            <div className="space-y-1">
-                {(slide.steps || []).map((s: any, i: number) => (
-                    <div key={i} className="animate-in flex items-start gap-6">
-                        {/* Timeline node */}
-                        <div className="flex flex-col items-center flex-shrink-0">
-                            <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${a.gradient} flex items-center justify-center text-white font-bold text-lg shadow-xl ${a.glow}`}>
-                                {i + 1}
-                            </div>
-                            {i < (slide.steps || []).length - 1 && (
-                                <div className={`w-0.5 h-16 bg-gradient-to-b ${a.gradient} opacity-30`}></div>
-                            )}
-                        </div>
-                        {/* Content */}
-                        <div className="pt-2 pb-6">
-                            <h3 className="text-xl md:text-2xl font-bold text-white">{s.step}</h3>
-                            <p className="text-gray-400 text-lg mt-1">{s.detail}</p>
-                        </div>
+            <h2 className="animate-in text-3xl md:text-5xl font-bold text-center" style={SF}>{slide.title}</h2>
+            <div className="space-y-1">{(slide.steps || []).map((s: any, i: number) => (
+                <div key={i} className="animate-in flex items-start gap-6">
+                    <div className="flex flex-col items-center flex-shrink-0">
+                        <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${a.gradient} flex items-center justify-center text-white font-bold text-lg shadow-xl ${a.glow}`}>{i + 1}</div>
+                        {i < (slide.steps || []).length - 1 && <div className={`w-0.5 h-16 bg-gradient-to-b ${a.gradient} opacity-30`}></div>}
                     </div>
-                ))}
-            </div>
+                    <div className="pt-2 pb-6"><h3 className="text-xl md:text-2xl font-bold text-white">{typeof s === "string" ? s : s.step}</h3>{s.detail && <p className="text-gray-400 text-lg mt-1">{s.detail}</p>}</div>
+                </div>
+            ))}</div>
         </div>
     );
 }
 
 function StatisticSlide({ slide }: { slide: any }) {
     const a = getAccent(slide.accent);
-    const numberRef = useRef<HTMLSpanElement>(null);
-
-    useEffect(() => {
-        if (!numberRef.current) return;
-        // Try to extract a numeric value for counter animation
-        const numMatch = slide.number?.match?.(/[\d.]+/);
-        if (numMatch) {
-            const target = parseFloat(numMatch[0]);
-            const prefix = slide.number.substring(0, slide.number.indexOf(numMatch[0]));
-            const suffix = slide.number.substring(slide.number.indexOf(numMatch[0]) + numMatch[0].length);
-            const isDecimal = numMatch[0].includes(".");
-            const el = numberRef.current;
-            animate(el, {
-                innerHTML: [0, target],
-                duration: 1500,
-                easing: "outExpo",
-                round: isDecimal ? 10 : 1,
-                modifier(value: number) {
-                    el.textContent = `${prefix}${isDecimal ? value.toFixed(1) : Math.round(value)}${suffix}`;
-                },
-            } as any);
-        }
-    }, [slide.number]);
-
     return (
         <div className="z-10 text-center max-w-4xl mx-auto space-y-8">
-            <h2 className="animate-in text-2xl md:text-3xl font-bold text-gray-400" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                {slide.title}
-            </h2>
-            <div className="animate-in">
-                <span
-                    ref={numberRef}
-                    className={`text-7xl md:text-[10rem] font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r ${a.gradient} leading-none`}
-                    style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-                >
-                    {slide.number}
-                </span>
-            </div>
-            {slide.unit && (
-                <p className={`animate-in text-2xl font-semibold ${a.text}`}>{slide.unit}</p>
-            )}
-            {slide.description && (
-                <p className="animate-in text-xl text-gray-400 max-w-xl mx-auto leading-relaxed">{slide.description}</p>
-            )}
+            <h2 className="animate-in text-2xl md:text-3xl font-bold text-gray-400" style={SF}>{slide.title}</h2>
+            <div className="animate-in"><span className={`text-7xl md:text-[10rem] font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r ${a.gradient} leading-none`} style={SF}>{slide.number}</span></div>
+            {slide.unit && <p className={`animate-in text-2xl font-semibold ${a.text}`}>{slide.unit}</p>}
+            {slide.description && <p className="animate-in text-xl text-gray-400 max-w-xl mx-auto leading-relaxed">{slide.description}</p>}
         </div>
     );
 }
@@ -198,12 +114,8 @@ function QuoteSlide({ slide }: { slide: any }) {
             <h2 className="animate-in text-xl font-medium text-gray-500 uppercase tracking-widest">{slide.title}</h2>
             <div className={`animate-in relative rounded-3xl ${a.bg} border ${a.border} p-10 md:p-16`}>
                 <div className={`absolute -top-6 left-1/2 -translate-x-1/2 text-8xl ${a.text} opacity-30 leading-none`} style={{ fontFamily: "Georgia, serif" }}>&ldquo;</div>
-                <blockquote className="text-2xl md:text-4xl font-medium leading-relaxed text-white relative z-10">
-                    {slide.quote}
-                </blockquote>
-                {slide.attribution && (
-                    <p className={`mt-6 text-lg ${a.text} font-medium`}>— {slide.attribution}</p>
-                )}
+                <blockquote className="text-2xl md:text-4xl font-medium leading-relaxed text-white relative z-10">{slide.quote}</blockquote>
+                {slide.attribution && <p className={`mt-6 text-lg ${a.text} font-medium`}>— {slide.attribution}</p>}
             </div>
         </div>
     );
@@ -214,25 +126,15 @@ function DiagramSlide({ slide }: { slide: any }) {
     return (
         <div className="z-10 w-full max-w-5xl flex flex-col md:flex-row items-center gap-12">
             <div className="flex-1 space-y-4">
-                <h2 className="animate-in text-3xl md:text-5xl font-bold leading-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                    {slide.title}
-                </h2>
-                {slide.description && (
-                    <p className="animate-in text-gray-400 text-lg">{slide.description}</p>
-                )}
+                <h2 className="animate-in text-3xl md:text-5xl font-bold leading-tight" style={SF}>{slide.title}</h2>
+                {slide.description && <p className="animate-in text-gray-400 text-lg">{slide.description}</p>}
             </div>
             <div className="animate-in flex-1 w-full">
                 <div className={`rounded-3xl ${a.bg} border ${a.border} p-8 space-y-4 shadow-2xl`}>
                     {(slide.nodes || []).map((node: any, i: number) => (
                         <div key={i}>
-                            <div className={`animate-in rounded-xl bg-white/10 border border-white/10 px-6 py-4 text-center font-semibold text-lg text-white`}>
-                                {node.label}
-                            </div>
-                            {i < (slide.nodes || []).length - 1 && (
-                                <div className="flex justify-center py-2">
-                                    <div className={`w-0.5 h-6 bg-gradient-to-b ${a.gradient} opacity-50`}></div>
-                                </div>
-                            )}
+                            <div className="animate-in rounded-xl bg-white/10 border border-white/10 px-6 py-4 text-center font-semibold text-lg text-white">{typeof node === "string" ? node : node.label}</div>
+                            {i < (slide.nodes || []).length - 1 && <div className="flex justify-center py-2"><div className={`w-0.5 h-6 bg-gradient-to-b ${a.gradient} opacity-50`}></div></div>}
                         </div>
                     ))}
                 </div>
@@ -245,51 +147,28 @@ function ListSlide({ slide }: { slide: any }) {
     const a = getAccent(slide.accent);
     return (
         <div className="z-10 w-full max-w-5xl space-y-8">
-            <h2 className="animate-in text-3xl md:text-5xl font-bold text-center" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                {slide.title}
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {(slide.items || []).map((item: any, i: number) => (
-                    <div key={i} className={`animate-in rounded-2xl bg-white/5 border border-white/10 p-6 space-y-2 hover:${a.bg} transition-colors`}>
-                        <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${a.gradient} flex items-center justify-center text-white font-bold text-sm shadow-lg ${a.glow}`}>
-                                {i + 1}
-                            </div>
-                            <h3 className="text-xl font-bold text-white">{item.term}</h3>
-                        </div>
-                        <p className="text-gray-400 text-lg pl-11">{item.definition}</p>
-                    </div>
-                ))}
-            </div>
+            <h2 className="animate-in text-3xl md:text-5xl font-bold text-center" style={SF}>{slide.title}</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{(slide.items || []).map((item: any, i: number) => (
+                <div key={i} className="animate-in rounded-2xl bg-white/5 border border-white/10 p-6 space-y-2">
+                    <div className="flex items-center gap-3"><div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${a.gradient} flex items-center justify-center text-white font-bold text-sm shadow-lg ${a.glow}`}>{i + 1}</div><h3 className="text-xl font-bold text-white">{item.term}</h3></div>
+                    <p className="text-gray-400 text-lg pl-11">{item.definition}</p>
+                </div>
+            ))}</div>
         </div>
     );
 }
 
 function CalloutSlide({ slide }: { slide: any }) {
     const a = getAccent(slide.accent);
-    const icons: Record<string, any> = {
-        tip: <Lightbulb className="w-10 h-10" />,
-        warning: <AlertTriangle className="w-10 h-10" />,
-        insight: <Lightbulb className="w-10 h-10" />,
-    };
-    const calloutLabels: Record<string, string> = {
-        tip: "💡 Pro Tip",
-        warning: "⚠️ Warning",
-        insight: "✨ Key Insight",
-    };
-
+    const labels: Record<string, string> = { tip: "💡 Pro Tip", warning: "⚠️ Warning", insight: "✨ Key Insight" };
     return (
         <div className="z-10 max-w-4xl mx-auto space-y-6 text-center">
             <h2 className="animate-in text-2xl font-bold text-gray-400">{slide.title}</h2>
             <div className={`animate-in rounded-3xl ${a.bg} border ${a.border} p-10 md:p-16 space-y-6 shadow-2xl relative overflow-hidden`}>
                 <div className={`absolute inset-0 bg-gradient-to-br ${a.gradient} opacity-5`}></div>
                 <div className="relative z-10 space-y-6">
-                    <p className={`text-lg font-bold ${a.text} uppercase tracking-widest`}>
-                        {calloutLabels[slide.calloutType] || "✨ Note"}
-                    </p>
-                    <p className="text-2xl md:text-4xl font-medium text-white leading-relaxed">
-                        {slide.message}
-                    </p>
+                    <p className={`text-lg font-bold ${a.text} uppercase tracking-widest`}>{labels[slide.calloutType] || "✨ Note"}</p>
+                    <p className="text-2xl md:text-4xl font-medium text-white leading-relaxed">{slide.message}</p>
                 </div>
             </div>
         </div>
@@ -300,138 +179,280 @@ function SummarySlide({ slide }: { slide: any }) {
     const a = getAccent(slide.accent);
     return (
         <div className="text-center z-10 max-w-4xl mx-auto space-y-10">
-            <h2 className={`animate-in text-5xl md:text-7xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r ${a.gradient}`} style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                {slide.title || "Key Takeaways"}
-            </h2>
-            {slide.keyPoints && (
-                <div className="space-y-4">
-                    {slide.keyPoints.map((point: string, i: number) => (
-                        <div key={i} className={`animate-in flex items-center gap-4 rounded-2xl bg-white/5 border border-white/10 px-8 py-5 text-left`}>
-                            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${a.gradient} flex items-center justify-center text-white font-bold flex-shrink-0 shadow-lg ${a.glow}`}>
-                                {i + 1}
-                            </div>
-                            <p className="text-xl text-gray-300">{point}</p>
-                        </div>
-                    ))}
+            <h2 className={`animate-in text-5xl md:text-7xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r ${a.gradient}`} style={SF}>{slide.title || "Key Takeaways"}</h2>
+            {slide.keyPoints && <div className="space-y-4">{slide.keyPoints.map((point: string, i: number) => (
+                <div key={i} className="animate-in flex items-center gap-4 rounded-2xl bg-white/5 border border-white/10 px-8 py-5 text-left">
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${a.gradient} flex items-center justify-center text-white font-bold flex-shrink-0 shadow-lg ${a.glow}`}>{i + 1}</div>
+                    <p className="text-xl text-gray-300">{point}</p>
                 </div>
-            )}
-            {slide.closingLine && (
-                <div className={`animate-in rounded-2xl ${a.bg} border ${a.border} p-8`}>
-                    <p className="text-2xl font-medium text-white">&ldquo;{slide.closingLine}&rdquo;</p>
-                </div>
-            )}
+            ))}</div>}
+            {slide.closingLine && <div className={`animate-in rounded-2xl ${a.bg} border ${a.border} p-8`}><p className="text-2xl font-medium text-white">&ldquo;{slide.closingLine}&rdquo;</p></div>}
         </div>
     );
 }
 
-/* ─── Slide Router ─── */
-function renderSlide(slide: any) {
-    switch (slide.type) {
-        case "title": return <TitleSlide slide={slide} />;
-        case "content": return <ContentSlide slide={slide} />;
-        case "comparison": return <ComparisonSlide slide={slide} />;
-        case "timeline": return <TimelineSlide slide={slide} />;
-        case "statistic": return <StatisticSlide slide={slide} />;
-        case "quote": return <QuoteSlide slide={slide} />;
-        case "diagram": return <DiagramSlide slide={slide} />;
-        case "list": return <ListSlide slide={slide} />;
-        case "callout": return <CalloutSlide slide={slide} />;
-        case "summary": return <SummarySlide slide={slide} />;
-        default: return <ContentSlide slide={slide} />;
-    }
+/* ─── NEW v3 TYPES ─── */
+
+function CodeSlide({ slide }: { slide: any }) {
+    const a = getAccent(slide.accent);
+    return (
+        <div className="z-10 w-full max-w-5xl space-y-6">
+            <h2 className="animate-in text-3xl md:text-4xl font-bold" style={SF}>{slide.title}</h2>
+            <div className="animate-in rounded-2xl bg-gray-950 border border-white/10 overflow-hidden shadow-2xl">
+                <div className="flex items-center gap-2 px-4 py-3 bg-white/5 border-b border-white/10">
+                    <div className="w-3 h-3 rounded-full bg-red-500/80"></div><div className="w-3 h-3 rounded-full bg-yellow-500/80"></div><div className="w-3 h-3 rounded-full bg-green-500/80"></div>
+                    <span className="ml-3 text-xs text-gray-500 font-mono">{slide.language || "code"}</span>
+                </div>
+                <pre className="p-6 text-sm md:text-base font-mono text-emerald-400 overflow-x-auto leading-relaxed whitespace-pre-wrap">{slide.code}</pre>
+            </div>
+            {slide.explanation && <p className="animate-in text-lg text-gray-400">{slide.explanation}</p>}
+        </div>
+    );
 }
 
-/* ─── Main Player ─── */
+function DefinitionSlide({ slide }: { slide: any }) {
+    const a = getAccent(slide.accent);
+    return (
+        <div className="z-10 max-w-4xl mx-auto space-y-6 text-center">
+            <h2 className="animate-in text-xl font-medium text-gray-500 uppercase tracking-widest">{slide.title || "Definition"}</h2>
+            <div className={`animate-in rounded-3xl ${a.bg} border ${a.border} p-10 md:p-14 text-left space-y-6`}>
+                <h3 className={`text-4xl md:text-5xl font-black ${a.text}`} style={SF}>{slide.term}</h3>
+                <p className="text-xl md:text-2xl text-gray-300 leading-relaxed">{slide.definition}</p>
+                {slide.example && <div className="rounded-xl bg-white/5 border border-white/10 p-5"><p className="text-gray-400 text-lg"><span className="font-semibold text-gray-300">Example:</span> {slide.example}</p></div>}
+            </div>
+        </div>
+    );
+}
+
+function ProsConsSlide({ slide }: { slide: any }) {
+    const a = getAccent(slide.accent);
+    return (
+        <div className="z-10 w-full max-w-6xl space-y-8">
+            <h2 className="animate-in text-3xl md:text-5xl font-bold text-center" style={SF}>{slide.title}</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="animate-in rounded-2xl bg-emerald-500/10 border border-emerald-500/30 p-8 space-y-4">
+                    <h3 className="text-2xl font-bold text-emerald-400">✅ Pros</h3>
+                    {(slide.pros || []).map((p: string, i: number) => <p key={i} className="animate-in text-lg text-gray-300 flex items-start gap-3"><ThumbsUp className="w-5 h-5 text-emerald-400 mt-1 flex-shrink-0" />{p}</p>)}
+                </div>
+                <div className="animate-in rounded-2xl bg-red-500/10 border border-red-500/30 p-8 space-y-4">
+                    <h3 className="text-2xl font-bold text-red-400">❌ Cons</h3>
+                    {(slide.cons || []).map((c: string, i: number) => <p key={i} className="animate-in text-lg text-gray-300 flex items-start gap-3"><ThumbsDown className="w-5 h-5 text-red-400 mt-1 flex-shrink-0" />{c}</p>)}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function EquationSlide({ slide }: { slide: any }) {
+    const a = getAccent(slide.accent);
+    return (
+        <div className="z-10 text-center max-w-4xl mx-auto space-y-8">
+            <h2 className="animate-in text-2xl md:text-3xl font-bold text-gray-400" style={SF}>{slide.title}</h2>
+            <div className={`animate-in rounded-3xl ${a.bg} border ${a.border} p-12 md:p-16`}>
+                <p className={`text-4xl md:text-6xl font-mono font-bold ${a.text}`}>{slide.equation}</p>
+            </div>
+            {slide.explanation && <p className="animate-in text-xl text-gray-400 max-w-xl mx-auto">{slide.explanation}</p>}
+        </div>
+    );
+}
+
+function MindmapSlide({ slide }: { slide: any }) {
+    const a = getAccent(slide.accent);
+    return (
+        <div className="z-10 w-full max-w-5xl space-y-8">
+            <h2 className="animate-in text-3xl md:text-4xl font-bold text-center" style={SF}>{slide.title}</h2>
+            <div className="flex flex-col items-center gap-6">
+                <div className={`animate-in rounded-2xl bg-gradient-to-br ${a.gradient} px-10 py-6 text-white font-bold text-2xl shadow-2xl ${a.glow}`}>{slide.center}</div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 w-full">
+                    {(slide.branches || []).map((b: any, i: number) => (
+                        <div key={i} className={`animate-in rounded-2xl ${a.bg} border ${a.border} p-5 space-y-3`}>
+                            <h4 className={`font-bold text-lg ${a.text}`}>{typeof b === "string" ? b : b.label}</h4>
+                            {b.children && b.children.map((c: string, j: number) => <p key={j} className="text-sm text-gray-400 pl-3 border-l border-white/10">{c}</p>)}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function TableSlide({ slide }: { slide: any }) {
+    const a = getAccent(slide.accent);
+    return (
+        <div className="z-10 w-full max-w-5xl space-y-8">
+            <h2 className="animate-in text-3xl md:text-4xl font-bold text-center" style={SF}>{slide.title}</h2>
+            <div className="animate-in rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+                <table className="w-full">
+                    {slide.headers && <thead><tr className={`bg-gradient-to-r ${a.gradient}`}>{slide.headers.map((h: string, i: number) => <th key={i} className="px-6 py-4 text-left text-white font-bold text-lg">{h}</th>)}</tr></thead>}
+                    <tbody>{(slide.rows || []).map((row: string[], ri: number) => (
+                        <tr key={ri} className={`${ri % 2 === 0 ? "bg-white/5" : "bg-white/[0.02]"} border-t border-white/5`}>
+                            {row.map((cell: string, ci: number) => <td key={ci} className="px-6 py-4 text-gray-300">{cell}</td>)}
+                        </tr>
+                    ))}</tbody>
+                </table>
+            </div>
+        </div>
+    );
+}
+
+function ExampleSlide({ slide }: { slide: any }) {
+    const a = getAccent(slide.accent);
+    return (
+        <div className="z-10 max-w-4xl mx-auto space-y-6">
+            <h2 className="animate-in text-3xl md:text-4xl font-bold" style={SF}>{slide.title}</h2>
+            <div className={`animate-in rounded-3xl ${a.bg} border ${a.border} p-10 space-y-6`}>
+                <div className="rounded-xl bg-white/5 border border-white/10 p-6"><p className="text-xl text-white font-medium">📋 {slide.scenario}</p></div>
+                <p className="text-lg text-gray-300 leading-relaxed">{slide.explanation}</p>
+                {slide.lesson && <div className={`rounded-xl ${a.bg} border ${a.border} p-5`}><p className={`text-lg font-semibold ${a.text}`}>💡 Lesson: {slide.lesson}</p></div>}
+            </div>
+        </div>
+    );
+}
+
+function FunfactSlide({ slide }: { slide: any }) {
+    const a = getAccent(slide.accent);
+    return (
+        <div className="z-10 text-center max-w-4xl mx-auto space-y-8">
+            <h2 className="animate-in text-xl font-bold text-gray-500 uppercase tracking-widest">{slide.title || "Did You Know?"}</h2>
+            <div className={`animate-in rounded-3xl ${a.bg} border ${a.border} p-10 md:p-16 relative overflow-hidden`}>
+                <span className="absolute top-4 right-6 text-6xl opacity-20">🤯</span>
+                <p className="text-2xl md:text-4xl font-medium text-white leading-relaxed relative z-10">{slide.fact}</p>
+                {slide.source && <p className={`mt-6 text-sm ${a.text}`}>Source: {slide.source}</p>}
+            </div>
+        </div>
+    );
+}
+
+function StepsSlide({ slide }: { slide: any }) {
+    const a = getAccent(slide.accent);
+    return (
+        <div className="z-10 w-full max-w-6xl space-y-8">
+            <h2 className="animate-in text-3xl md:text-5xl font-bold text-center" style={SF}>{slide.title}</h2>
+            <div className="flex flex-wrap justify-center gap-4">
+                {(slide.steps || []).map((s: any, i: number) => (
+                    <div key={i} className="animate-in flex items-center gap-3">
+                        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${a.gradient} flex items-center justify-center text-white font-bold text-xl shadow-xl ${a.glow}`}>{i + 1}</div>
+                        <div className="rounded-xl bg-white/5 border border-white/10 px-5 py-3 max-w-[200px]"><p className="text-white font-medium">{typeof s === "string" ? s : s.step || s.label || JSON.stringify(s)}</p></div>
+                        {i < (slide.steps || []).length - 1 && <span className="text-gray-600 text-2xl">→</span>}
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function HighlightSlide({ slide }: { slide: any }) {
+    const a = getAccent(slide.accent);
+    return (
+        <div className="z-10 text-center max-w-5xl mx-auto space-y-6">
+            {slide.title && <h2 className="animate-in text-xl text-gray-500 font-medium uppercase tracking-widest">{slide.title}</h2>}
+            <h1 className={`animate-in text-6xl md:text-[9rem] font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r ${a.gradient} leading-none`} style={SF}>{slide.highlight}</h1>
+            {slide.subtext && <p className="animate-in text-xl md:text-2xl text-gray-400 max-w-xl mx-auto">{slide.subtext}</p>}
+        </div>
+    );
+}
+
+/* ─── GENERIC FALLBACK for AI-invented types ─── */
+function GenericSlide({ slide }: { slide: any }) {
+    const a = getAccent(slide.accent);
+    const entries = Object.entries(slide).filter(([k]) => !["id", "type", "accent", "icon"].includes(k));
+    return (
+        <div className="z-10 w-full max-w-5xl space-y-6">
+            {slide.title && <h2 className="animate-in text-3xl md:text-5xl font-bold" style={SF}>{slide.title}</h2>}
+            {entries.filter(([k]) => k !== "title").map(([key, value]) => {
+                if (Array.isArray(value)) return (
+                    <div key={key} className="animate-in space-y-3">
+                        <h3 className={`text-lg font-semibold ${a.text} uppercase tracking-wider`}>{key}</h3>
+                        {value.map((item, i) => <div key={i} className="rounded-xl bg-white/5 border border-white/10 px-5 py-3 text-gray-300">{typeof item === "object" ? JSON.stringify(item) : String(item)}</div>)}
+                    </div>
+                );
+                if (typeof value === "string") return <p key={key} className="animate-in text-xl text-gray-300 leading-relaxed">{value}</p>;
+                return null;
+            })}
+        </div>
+    );
+}
+
+/* ═══════════════ SLIDE ROUTER ═══════════════ */
+function renderSlide(slide: any) {
+    const map: Record<string, any> = {
+        title: TitleSlide, content: ContentSlide, comparison: ComparisonSlide, timeline: TimelineSlide,
+        statistic: StatisticSlide, quote: QuoteSlide, diagram: DiagramSlide, list: ListSlide,
+        callout: CalloutSlide, summary: SummarySlide, code: CodeSlide, definition: DefinitionSlide,
+        pros_cons: ProsConsSlide, equation: EquationSlide, mindmap: MindmapSlide, table: TableSlide,
+        example: ExampleSlide, funfact: FunfactSlide, steps: StepsSlide, highlight: HighlightSlide,
+    };
+    const Component = map[slide.type] || GenericSlide;
+    return <Component slide={slide} />;
+}
+
+/* ═══════════════ BACKGROUND AUDIO ═══════════════ */
+const AMBIENT_AUDIO = "https://cdn.pixabay.com/audio/2024/11/28/audio_7a0827a05a.mp3";
+
+/* ═══════════════ MAIN PLAYER ═══════════════ */
 export default function PresentationPlayer({ slides }: { slides: any[] }) {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isPlaying, setIsPlaying] = useState(true);
     const [isExporting, setIsExporting] = useState(false);
+    const [isMuted, setIsMuted] = useState(false);
+    const [volume, setVolume] = useState(0.3);
     const slideRef = useRef<HTMLDivElement>(null);
     const bgRef = useRef<HTMLDivElement>(null);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
     const autoPlayTimer = useRef<NodeJS.Timeout | null>(null);
+
+    // Initialize audio
+    useEffect(() => {
+        const audio = new Audio(AMBIENT_AUDIO);
+        audio.loop = true;
+        audio.volume = volume;
+        audioRef.current = audio;
+        return () => { audio.pause(); audio.src = ""; };
+    }, []);
+
+    // Sync audio with play state
+    useEffect(() => {
+        if (!audioRef.current) return;
+        audioRef.current.volume = isMuted ? 0 : volume;
+        if (isPlaying) {
+            audioRef.current.play().catch(() => { });
+        } else {
+            audioRef.current.pause();
+        }
+    }, [isPlaying, isMuted, volume]);
 
     const handleExport = async () => {
         if (!slides || slides.length === 0) return;
         setIsExporting(true);
         try {
-            const response = await fetch('/api/export', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ slides }),
-            });
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.details || 'Export failed');
-            }
+            const response = await fetch('/api/export', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slides }) });
+            if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.details || 'Export failed'); }
             const blob = await response.blob();
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'explainit-presentation.mp4';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        } catch (error: any) {
-            console.error('Export error:', error);
-            alert(`Export failed: ${error.message}.`);
-        } finally {
-            setIsExporting(false);
-        }
+            const a = document.createElement('a'); a.href = url; a.download = 'explainit-presentation.mp4'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+        } catch (error: any) { alert(`Export failed: ${error.message}.`); } finally { setIsExporting(false); }
     };
 
     const nextSlide = useCallback(() => {
-        if (currentSlide < slides.length - 1) {
-            setCurrentSlide(prev => prev + 1);
-        } else {
-            setIsPlaying(false);
-        }
+        if (currentSlide < slides.length - 1) setCurrentSlide(prev => prev + 1);
+        else setIsPlaying(false);
     }, [currentSlide, slides.length]);
 
-    const prevSlide = () => {
-        if (currentSlide > 0) {
-            setCurrentSlide(prev => prev - 1);
-        }
-    }
+    const prevSlide = () => { if (currentSlide > 0) setCurrentSlide(prev => prev - 1); };
 
-    // Auto-play timer
     useEffect(() => {
-        if (isPlaying) {
-            autoPlayTimer.current = setTimeout(nextSlide, 5000);
-        }
-        return () => {
-            if (autoPlayTimer.current) clearTimeout(autoPlayTimer.current);
-        };
+        if (isPlaying) autoPlayTimer.current = setTimeout(nextSlide, 5000);
+        return () => { if (autoPlayTimer.current) clearTimeout(autoPlayTimer.current); };
     }, [isPlaying, currentSlide, nextSlide]);
 
-    // Anime.js micro-animations on slide change
     useEffect(() => {
         if (!slideRef.current) return;
-
         const targets = slideRef.current.querySelectorAll(".animate-in");
-        animate(targets, {
-            opacity: [0, 1],
-            translateY: [40, 0],
-            scale: [0.97, 1],
-            ease: "outExpo",
-            duration: 900,
-            delay: stagger(120, { start: 80 }),
-        });
-
-        if (bgRef.current) {
-            animate(bgRef.current, {
-                scale: [1, 1.15, 1],
-                opacity: [0.3, 0.5, 0.3],
-                ease: "inOutSine",
-                duration: 6000,
-                loop: true,
-            });
-        }
+        animate(targets, { opacity: [0, 1], translateY: [40, 0], scale: [0.97, 1], ease: "outExpo", duration: 900, delay: stagger(100, { start: 60 }) });
+        if (bgRef.current) animate(bgRef.current, { scale: [1, 1.15, 1], opacity: [0.3, 0.5, 0.3], ease: "inOutSine", duration: 6000, loop: true });
     }, [currentSlide]);
 
-    if (!slides || slides.length === 0) {
-        return <div className="flex h-screen items-center justify-center text-white bg-black">No slides to display.</div>
-    }
+    if (!slides || slides.length === 0) return <div className="flex h-screen items-center justify-center text-white bg-black">No slides to display.</div>;
 
     const slide = slides[currentSlide];
     const progress = ((currentSlide + 1) / slides.length) * 100;
@@ -439,124 +460,59 @@ export default function PresentationPlayer({ slides }: { slides: any[] }) {
 
     return (
         <div className="flex flex-col h-screen bg-black text-white overflow-hidden relative selection:bg-purple-500/30">
-
             {/* Top Bar */}
             <header className="absolute top-0 inset-x-0 h-16 flex items-center justify-between px-6 z-50 bg-gradient-to-b from-black/80 to-transparent">
-                <Link href="/dashboard" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group">
-                    <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" /> Back to Editor
-                </Link>
-                {isExporting ? (
-                    <button disabled className="flex items-center gap-2 bg-purple-600/50 text-white/70 px-5 py-2.5 rounded-full font-medium cursor-not-allowed">
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        Rendering...
+                <Link href="/dashboard" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group"><ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" /> Back</Link>
+                <div className="flex items-center gap-3">
+                    {/* Audio controls */}
+                    <button onClick={() => setIsMuted(!isMuted)} className="text-gray-400 hover:text-white transition-colors p-2">
+                        {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                     </button>
-                ) : (
-                    <button
-                        onClick={handleExport}
-                        className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white px-5 py-2.5 rounded-full font-medium transition-all shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 hover:scale-105 active:scale-95"
-                    >
-                        <Download className="w-4 h-4" /> Export Video
-                    </button>
-                )}
+                    <input type="range" min="0" max="1" step="0.05" value={isMuted ? 0 : volume} onChange={e => { setVolume(parseFloat(e.target.value)); setIsMuted(false); }}
+                        className="w-20 h-1 bg-white/20 rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white" />
+                    {isExporting ? (
+                        <button disabled className="flex items-center gap-2 bg-purple-600/50 text-white/70 px-5 py-2.5 rounded-full font-medium cursor-not-allowed"><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>Rendering...</button>
+                    ) : (
+                        <button onClick={handleExport} className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white px-5 py-2.5 rounded-full font-medium transition-all shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 hover:scale-105 active:scale-95"><Download className="w-4 h-4" /> Export</button>
+                    )}
+                </div>
             </header>
 
             {/* Progress Bar */}
-            <div className="absolute top-16 inset-x-0 h-0.5 bg-white/5 z-50">
-                <motion.div
-                    className={`h-full bg-gradient-to-r ${a.gradient}`}
-                    animate={{ width: `${progress}%` }}
-                    transition={{ duration: 0.5, ease: "easeInOut" }}
-                />
-            </div>
+            <div className="absolute top-16 inset-x-0 h-0.5 bg-white/5 z-50"><motion.div className={`h-full bg-gradient-to-r ${a.gradient}`} animate={{ width: `${progress}%` }} transition={{ duration: 0.5, ease: "easeInOut" }} /></div>
 
             {/* Slide type badge */}
-            <div className="absolute top-20 left-6 z-50">
-                <span className={`text-xs font-mono uppercase tracking-wider ${a.text} ${a.bg} ${a.border} border rounded-full px-3 py-1`}>
-                    {slide.type}
-                </span>
-            </div>
+            <div className="absolute top-20 left-6 z-50"><span className={`text-xs font-mono uppercase tracking-wider ${a.text} ${a.bg} ${a.border} border rounded-full px-3 py-1`}>{slide.type}</span></div>
 
             {/* Main Stage */}
-            <main className="flex-1 flex items-center justify-center relative p-8 md:p-24 overflow-hidden">
-                {/* Animated Background Orb */}
-                <div
-                    ref={bgRef}
-                    className="absolute w-[700px] h-[700px] rounded-full pointer-events-none -z-0"
-                    style={{
-                        background: `radial-gradient(circle, ${slide.accent === 'emerald' ? 'rgba(16,185,129,0.15)' :
-                            slide.accent === 'blue' ? 'rgba(59,130,246,0.15)' :
-                                slide.accent === 'pink' ? 'rgba(236,72,153,0.15)' :
-                                    slide.accent === 'amber' ? 'rgba(245,158,11,0.15)' :
-                                        slide.accent === 'cyan' ? 'rgba(6,182,212,0.15)' :
-                                            slide.accent === 'rose' ? 'rgba(244,63,94,0.15)' :
-                                                slide.accent === 'indigo' ? 'rgba(99,102,241,0.15)' :
-                                                    'rgba(147,51,234,0.15)'} 0%, transparent 70%)`,
-                        top: "50%",
-                        left: "50%",
-                        transform: "translate(-50%, -50%)",
-                    }}
-                />
+            <main className="flex-1 flex items-center justify-center relative p-8 md:p-24 overflow-hidden overflow-y-auto">
+                <div ref={bgRef} className="absolute w-[700px] h-[700px] rounded-full pointer-events-none -z-0" style={{
+                    background: `radial-gradient(circle, rgba(${a.rgb},0.15) 0%, transparent 70%)`,
+                    top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+                }} />
 
                 <AnimatePresence mode="wait">
-                    <motion.div
-                        key={slide.id}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0, transition: { duration: 0.2 } }}
-                        className="w-full flex items-center justify-center"
-                    >
-                        <div ref={slideRef} className="w-full flex items-center justify-center">
-                            {renderSlide(slide)}
-                        </div>
+                    <motion.div key={slide.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: 0.2 } }} className="w-full flex items-center justify-center">
+                        <div ref={slideRef} className="w-full flex items-center justify-center">{renderSlide(slide)}</div>
                     </motion.div>
                 </AnimatePresence>
             </main>
 
             {/* Controls Bar */}
             <footer className="absolute bottom-6 inset-x-6 flex items-center justify-between z-50">
-                <div className="flex items-center gap-1.5">
-                    {slides.map((_, i) => (
-                        <div
-                            key={i}
-                            onClick={() => setCurrentSlide(i)}
-                            className={`h-1.5 rounded-full cursor-pointer transition-all duration-500 ${i === currentSlide
-                                ? `w-10 bg-gradient-to-r ${a.gradient} shadow-lg ${a.glow}`
-                                : i < currentSlide
-                                    ? `w-4 bg-gradient-to-r ${a.gradient} opacity-40`
-                                    : "w-4 bg-white/15 hover:bg-white/30"
-                                }`}
-                        />
-                    ))}
-                </div>
+                <div className="flex items-center gap-1.5">{slides.map((_, i) => (
+                    <div key={i} onClick={() => setCurrentSlide(i)} className={`h-1.5 rounded-full cursor-pointer transition-all duration-500 ${i === currentSlide ? `w-10 bg-gradient-to-r ${a.gradient} shadow-lg ${a.glow}` : i < currentSlide ? `w-4 bg-gradient-to-r ${a.gradient} opacity-40` : "w-4 bg-white/15 hover:bg-white/30"}`} />
+                ))}</div>
 
                 <div className="flex items-center gap-4 bg-white/10 backdrop-blur-xl border border-white/10 px-6 py-3 rounded-full shadow-2xl">
-                    <button
-                        onClick={prevSlide}
-                        disabled={currentSlide === 0}
-                        className="text-white hover:text-purple-400 disabled:opacity-30 disabled:hover:text-white transition-all p-2 hover:scale-110 active:scale-95"
-                    >
-                        <SkipBack className="w-5 h-5" />
-                    </button>
-
-                    <button
-                        onClick={() => setIsPlaying(!isPlaying)}
-                        className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-lg"
-                    >
+                    <button onClick={prevSlide} disabled={currentSlide === 0} className="text-white hover:text-purple-400 disabled:opacity-30 transition-all p-2 hover:scale-110 active:scale-95"><SkipBack className="w-5 h-5" /></button>
+                    <button onClick={() => setIsPlaying(!isPlaying)} className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-lg">
                         {isPlaying ? <Pause className="w-5 h-5 fill-black" /> : <Play className="w-5 h-5 fill-black ml-0.5" />}
                     </button>
-
-                    <button
-                        onClick={nextSlide}
-                        disabled={currentSlide === slides.length - 1}
-                        className="text-white hover:text-purple-400 disabled:opacity-30 disabled:hover:text-white transition-all p-2 hover:scale-110 active:scale-95"
-                    >
-                        <SkipForward className="w-5 h-5" />
-                    </button>
+                    <button onClick={nextSlide} disabled={currentSlide === slides.length - 1} className="text-white hover:text-purple-400 disabled:opacity-30 transition-all p-2 hover:scale-110 active:scale-95"><SkipForward className="w-5 h-5" /></button>
                 </div>
 
-                <div className="w-24 text-right text-gray-500 font-mono text-sm tabular-nums">
-                    {currentSlide + 1} / {slides.length}
-                </div>
+                <div className="w-24 text-right text-gray-500 font-mono text-sm tabular-nums">{currentSlide + 1} / {slides.length}</div>
             </footer>
         </div>
     )

@@ -6,7 +6,7 @@ const useSpotlightEffect = (config = {}) => {
     const {
         spotlightSize = 200,
         spotlightIntensity = 0.8,
-        fadeSpeed = 0.1,
+        fadeSpeed = 0.15,
         glowColor = "255, 255, 255",
         pulseSpeed = 2000,
     } = config;
@@ -47,7 +47,7 @@ const useSpotlightEffect = (config = {}) => {
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+            ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             const pulseScale = 1 + 0.1 * Math.sin((Date.now() / pulseSpeed) * Math.PI * 2);
@@ -72,7 +72,7 @@ const useSpotlightEffect = (config = {}) => {
                 spotlightPos.current.x, spotlightPos.current.y, 0,
                 spotlightPos.current.x, spotlightPos.current.y, currentSpotlightSize * 1.2
             );
-            glowGradient.addColorStop(0, `rgba(${glowColor}, 0.2)`);
+            glowGradient.addColorStop(0, `rgba(${glowColor}, 0.4)`);
             glowGradient.addColorStop(1, "rgba(0, 0, 0, 0)");
             ctx.fillStyle = glowGradient;
             ctx.beginPath();
