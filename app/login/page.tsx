@@ -30,10 +30,10 @@ export default function LoginPage() {
             if (error) {
                 setError(error.message);
             } else {
-                router.push("/dashboard");
+                window.location.href = "/dashboard";
             }
         } else {
-            const { error } = await supabase.auth.signUp({
+            const { data, error } = await supabase.auth.signUp({
                 email,
                 password,
             });
@@ -41,7 +41,12 @@ export default function LoginPage() {
                 setError(error.message);
             } else {
                 setError("");
-                alert("Check your email for a confirmation link!");
+                if (data.session) {
+                    // Automatically signed in because email confirmation is disabled
+                    window.location.href = "/dashboard";
+                } else {
+                    alert("Check your email for a confirmation link!");
+                }
             }
         }
 
