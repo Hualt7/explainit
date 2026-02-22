@@ -49,7 +49,7 @@ ${script}
                 "X-Title": "ExplainIt",
             },
             body: JSON.stringify({
-                model: "google/gemini-2.0-flash-001",
+                model: "anthropic/claude-3-opus",
                 messages: [
                     { role: "user", content: prompt },
                 ],
