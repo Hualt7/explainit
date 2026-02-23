@@ -19,6 +19,8 @@ import type { Slide } from "../types";
 
 const typeIcons: Record<string, typeof Layout> = {
     title: Layout,
+    section_header: Layout,
+    outro: Layout,
     content: Layers,
     comparison: Layers,
     timeline: Layers,

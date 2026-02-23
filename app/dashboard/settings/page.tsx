@@ -21,8 +21,10 @@ import {
     Lightbulb,
     BarChart3,
     Volume2,
+    Music2,
+    Tv,
 } from "lucide-react";
-import { useSettingsStore, type AISettings } from "../../store/useSettingsStore";
+import { useSettingsStore, type AISettings, type PresentationSettings, type VideoStylePreset } from "../../store/useSettingsStore";
 
 const toneOptions: { value: AISettings["tone"]; label: string; icon: React.ReactNode; desc: string }[] = [
     { value: "professional", label: "Professional", icon: <Briefcase className="w-4 h-4" />, desc: "Clean, corporate tone" },
@@ -30,6 +32,7 @@ const toneOptions: { value: AISettings["tone"]; label: string; icon: React.React
     { value: "academic", label: "Academic", icon: <GraduationCap className="w-4 h-4" />, desc: "Research-oriented" },
     { value: "fun", label: "Fun", icon: <Sparkles className="w-4 h-4" />, desc: "Playful & engaging" },
     { value: "storytelling", label: "Storytelling", icon: <BookOpen className="w-4 h-4" />, desc: "Narrative-driven" },
+    { value: "tech-deep-dive", label: "Tech Deep Dive", icon: <Code className="w-4 h-4" />, desc: "Technical & in-depth" },
 ];
 
 const slideCountOptions: { value: AISettings["slideCount"]; label: string; range: string }[] = [
@@ -43,6 +46,21 @@ const styleOptions: { value: AISettings["style"]; label: string; desc: string }[
     { value: "visual", label: "Visual Heavy", desc: "More diagrams, charts, comparisons" },
     { value: "balanced", label: "Balanced", desc: "Mix of text and visuals" },
     { value: "text-heavy", label: "Text Heavy", desc: "More detailed explanations" },
+];
+
+const videoStylePresets: { value: VideoStylePreset; label: string; desc: string; tone: AISettings["tone"]; style: AISettings["style"]; slideCount: AISettings["slideCount"] }[] = [
+    { value: "custom", label: "Custom", desc: "Use tone, style & length below", tone: "professional", style: "balanced", slideCount: "medium" },
+    { value: "teacher", label: "Teacher-style explainer", desc: "Educational, clear, medium length", tone: "casual", style: "balanced", slideCount: "medium" },
+    { value: "youtube-tech", label: "YouTube tech channel", desc: "Engaging, visual, in-depth", tone: "tech-deep-dive", style: "visual", slideCount: "long" },
+    { value: "corporate", label: "Corporate training", desc: "Professional, polished, concise", tone: "professional", style: "text-heavy", slideCount: "short" },
+];
+
+const musicMoodOptions: { value: PresentationSettings["musicMood"]; label: string }[] = [
+    { value: "none", label: "No music" },
+    { value: "calm", label: "Calm" },
+    { value: "uplifting", label: "Uplifting" },
+    { value: "corporate", label: "Corporate" },
+    { value: "playful", label: "Playful" },
 ];
 
 const accentColors = [
@@ -119,13 +137,38 @@ export default function SettingsPage() {
 
                     <section className="space-y-3">
                         <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                            <Tv className="w-4 h-4" /> Video style preset
+                        </h2>
+                        <p className="text-xs text-gray-500">One-click tone + visual style + length. Or choose Custom and set below.</p>
+                        <div className="grid grid-cols-2 gap-2">
+                            {videoStylePresets.map((preset) => (
+                                <button
+                                    key={preset.value}
+                                    onClick={() => {
+                                        setAI({
+                                            videoStylePreset: preset.value,
+                                            ...(preset.value !== "custom" && { tone: preset.tone, style: preset.style, slideCount: preset.slideCount }),
+                                        });
+                                        showSaved();
+                                    }}
+                                    className={`p-3 rounded-xl border text-left transition-all ${(ai.videoStylePreset ?? "custom") === preset.value ? "bg-purple-500/20 border-purple-500/50 text-white" : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"}`}
+                                >
+                                    <p className="font-semibold text-sm">{preset.label}</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">{preset.desc}</p>
+                                </button>
+                            ))}
+                        </div>
+                    </section>
+
+                    <section className="space-y-3">
+                        <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wider flex items-center gap-2">
                             <Sparkles className="w-4 h-4" /> AI Tone
                         </h2>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                             {toneOptions.map((opt) => (
                                 <button
                                     key={opt.value}
-                                    onClick={() => { setAI({ tone: opt.value }); showSaved(); }}
+                                    onClick={() => { setAI({ tone: opt.value, videoStylePreset: "custom" }); showSaved(); }}
                                     className={`flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${ai.tone === opt.value
                                         ? "bg-purple-500/20 border-purple-500/50 text-white"
                                         : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
@@ -149,7 +192,7 @@ export default function SettingsPage() {
                             {slideCountOptions.map((opt) => (
                                 <button
                                     key={opt.value}
-                                    onClick={() => { setAI({ slideCount: opt.value }); showSaved(); }}
+                                    onClick={() => { setAI({ slideCount: opt.value, videoStylePreset: "custom" }); showSaved(); }}
                                     className={`p-4 rounded-xl border text-center transition-all ${ai.slideCount === opt.value
                                         ? "bg-purple-500/20 border-purple-500/50 text-white"
                                         : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
@@ -168,7 +211,7 @@ export default function SettingsPage() {
                             {styleOptions.map((opt) => (
                                 <button
                                     key={opt.value}
-                                    onClick={() => { setAI({ style: opt.value }); showSaved(); }}
+                                    onClick={() => { setAI({ style: opt.value, videoStylePreset: "custom" }); showSaved(); }}
                                     className={`p-4 rounded-xl border text-center transition-all ${ai.style === opt.value
                                         ? "bg-purple-500/20 border-purple-500/50 text-white"
                                         : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
@@ -293,6 +336,51 @@ export default function SettingsPage() {
                                     <span className="text-sm text-gray-400 w-6 text-right">{presentation.slideDuration}s</span>
                                 </div>
                             </div>
+
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-400"><Music2 className="w-4 h-4" /></div>
+                                    <span className="text-sm font-medium">Background music</span>
+                                </div>
+                                <button
+                                    onClick={() => { setPresentation({ enableMusic: !(presentation.enableMusic ?? true) }); showSaved(); }}
+                                    className={`w-11 h-6 rounded-full transition-colors relative ${(presentation.enableMusic ?? true) ? "bg-purple-500" : "bg-white/10"}`}
+                                >
+                                    <div className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-transform ${(presentation.enableMusic ?? true) ? "translate-x-[22px]" : "translate-x-0.5"}`} />
+                                </button>
+                            </div>
+                            {(presentation.enableMusic ?? true) && (
+                                <>
+                                    <div className="flex items-center justify-between pt-2">
+                                        <span className="text-sm text-gray-400">Mood</span>
+                                        <select
+                                            value={presentation.musicMood ?? "calm"}
+                                            onChange={(e) => { setPresentation({ musicMood: e.target.value as PresentationSettings["musicMood"] }); showSaved(); }}
+                                            className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white"
+                                        >
+                                            {musicMoodOptions.map((opt) => (
+                                                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm text-gray-400">Music volume</span>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="range"
+                                                min={0}
+                                                max={1}
+                                                step={0.05}
+                                                value={presentation.musicVolume ?? 0.25}
+                                                onChange={(e) => setPresentation({ musicVolume: parseFloat(e.target.value) })}
+                                                onMouseUp={() => showSaved()}
+                                                className="w-24 accent-purple-500"
+                                            />
+                                            <span className="text-sm text-gray-400 w-8 text-right">{Math.round((presentation.musicVolume ?? 0.25) * 100)}%</span>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </section>
 

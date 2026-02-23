@@ -7,7 +7,13 @@ import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { animate, stagger } from "animejs"
 import { useSettingsStore } from "../store/useSettingsStore"
+import { getMusicUrl } from "../lib/backgroundMusic"
 import type { Slide } from "../types"
+
+type TimelineStep = NonNullable<Slide["steps"]>[number]
+type DiagramNode = NonNullable<Slide["nodes"]>[number]
+type ListItem = NonNullable<Slide["items"]>[number]
+type BranchItem = NonNullable<Slide["branches"]>[number]
 
 /* ─── Accent color map ─── */
 const accentColors: Record<string, { gradient: string; bg: string; border: string; text: string; glow: string; rgb: string }> = {
@@ -37,6 +43,30 @@ function TitleSlide({ slide }: { slide: Slide }) {
             <h1 className="animate-in text-5xl md:text-8xl font-black tracking-tight leading-[1.05]" style={SF}>{slide.title}</h1>
             {slide.subtitle && <p className="animate-in text-xl md:text-2xl text-gray-400 font-medium max-w-2xl mx-auto">{slide.subtitle}</p>}
             <div className="animate-in flex items-center justify-center gap-2 mt-4"><span className={`h-1 w-16 rounded-full bg-gradient-to-r ${a.gradient}`}></span></div>
+        </div>
+    );
+}
+
+function SectionHeaderSlide({ slide }: { slide: Slide }) {
+    const a = getAccent(slide.accent);
+    return (
+        <div className="text-center z-10 max-w-4xl mx-auto space-y-6">
+            <div className={`animate-in h-1 w-12 rounded-full bg-gradient-to-r ${a.gradient} mx-auto`} />
+            <h2 className="animate-in text-4xl md:text-6xl font-extrabold tracking-tight" style={SF}>{slide.title}</h2>
+            {slide.subtitle && <p className="animate-in text-lg md:text-xl text-gray-400">{slide.subtitle}</p>}
+        </div>
+    );
+}
+
+function OutroSlide({ slide }: { slide: Slide }) {
+    const a = getAccent(slide.accent);
+    return (
+        <div className="text-center z-10 max-w-4xl mx-auto space-y-8">
+            <div className={`animate-in inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr ${a.gradient} shadow-2xl ${a.glow}`}>
+                <CheckCircle className="w-8 h-8 text-white" />
+            </div>
+            <h2 className="animate-in text-4xl md:text-6xl font-bold" style={SF}>{slide.title || "Thanks for watching"}</h2>
+            {slide.subtitle && <p className="animate-in text-xl text-gray-400">{slide.subtitle}</p>}
         </div>
     );
 }
@@ -161,14 +191,14 @@ function ComparisonSlide({ slide }: { slide: Slide }) {
 function TimelineSlide({ slide }: { slide: Slide }) {
     const a = getAccent(slide.accent);
     const layout = slide.layout || "vertical";
-    const steps = slide.steps || [];
-    const StepItem = ({ s, i }: { s: any; i: number }) => (
+    const steps: TimelineStep[] = (slide.steps ?? []) as TimelineStep[];
+    const StepItem = ({ s, i }: { s: TimelineStep; i: number }) => (
         <div className="animate-in flex items-start gap-6">
             <div className="flex flex-col items-center flex-shrink-0">
                 <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${a.gradient} flex items-center justify-center text-white font-bold text-lg shadow-xl ${a.glow}`}>{i + 1}</div>
                 {layout === "vertical" && i < steps.length - 1 && <div className={`w-0.5 h-16 bg-gradient-to-b ${a.gradient} opacity-30`}></div>}
             </div>
-            <div className="pt-2 pb-6"><h3 className="text-xl md:text-2xl font-bold text-white">{typeof s === "string" ? s : s.step}</h3>{s.detail && <p className="text-gray-400 text-lg mt-1">{s.detail}</p>}</div>
+            <div className="pt-2 pb-6"><h3 className="text-xl md:text-2xl font-bold text-white">{typeof s === "string" ? s : s.step}</h3>{typeof s !== "string" && s.detail && <p className="text-gray-400 text-lg mt-1">{s.detail}</p>}</div>
         </div>
     );
     if (layout === "horizontal") {
@@ -176,13 +206,13 @@ function TimelineSlide({ slide }: { slide: Slide }) {
             <div className="z-10 w-full max-w-6xl space-y-8">
                 <h2 className="animate-in text-3xl md:text-5xl font-bold text-center" style={SF}>{slide.title}</h2>
                 <div className="flex flex-wrap justify-center items-start gap-2">
-                    {steps.map((s: any, i: number) => (
+                    {steps.map((s: TimelineStep, i: number) => (
                         <div key={i} className="contents">
                             <div className="flex items-center gap-2">
                                 <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${a.gradient} flex items-center justify-center text-white font-bold text-lg shadow-xl ${a.glow} flex-shrink-0`}>{i + 1}</div>
                                 <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3 max-w-[200px]">
                                     <p className="text-white font-medium">{typeof s === "string" ? s : s.step}</p>
-                                    {s.detail && <p className="text-gray-400 text-sm mt-1">{s.detail}</p>}
+                                    {typeof s !== "string" && s.detail && <p className="text-gray-400 text-sm mt-1">{s.detail}</p>}
                                 </div>
                             </div>
                             {i < steps.length - 1 && <span className="text-gray-600 text-2xl self-center">→</span>}
@@ -197,7 +227,7 @@ function TimelineSlide({ slide }: { slide: Slide }) {
             <div className="z-10 w-full max-w-5xl space-y-8">
                 <h2 className="animate-in text-3xl md:text-5xl font-bold text-center" style={SF}>{slide.title}</h2>
                 <div className="space-y-4">
-                    {steps.map((s: any, i: number) => (
+                    {steps.map((s: TimelineStep, i: number) => (
                         <div key={i} className={i % 2 === 0 ? "ml-0 mr-16" : "ml-16 mr-0"}>
                             <StepItem s={s} i={i} />
                         </div>
@@ -209,7 +239,7 @@ function TimelineSlide({ slide }: { slide: Slide }) {
     return (
         <div className="z-10 w-full max-w-5xl space-y-8">
             <h2 className="animate-in text-3xl md:text-5xl font-bold text-center" style={SF}>{slide.title}</h2>
-            <div className="space-y-1">{steps.map((s: any, i: number) => (
+            <div className="space-y-1">{steps.map((s: TimelineStep, i: number) => (
                 <div key={i}><StepItem s={s} i={i} /></div>
             ))}</div>
         </div>
@@ -276,10 +306,16 @@ function DiagramSlide({ slide }: { slide: Slide }) {
             </div>
             <div className="animate-in flex-1 w-full">
                 <div className={`rounded-3xl ${a.bg} border ${a.border} p-8 space-y-4 shadow-2xl`}>
-                    {(slide.nodes || []).map((node: any, i: number) => (
+                    {((slide.nodes ?? []) as DiagramNode[]).map((node, i, nodes) => (
                         <div key={i}>
-                            <div className="animate-in rounded-xl bg-white/10 border border-white/10 px-6 py-4 text-center font-semibold text-lg text-white">{typeof node === "string" ? node : node.label}</div>
-                            {i < (slide.nodes || []).length - 1 && <div className="flex justify-center py-2"><div className={`w-0.5 h-6 bg-gradient-to-b ${a.gradient} opacity-50`}></div></div>}
+                            <div className="animate-in rounded-xl bg-white/10 border border-white/10 px-6 py-4 text-center font-semibold text-lg text-white">
+                                {typeof node === "string" ? node : node.label}
+                            </div>
+                            {i < nodes.length - 1 && (
+                                <div className="flex justify-center py-2">
+                                    <div className={`w-0.5 h-6 bg-gradient-to-b ${a.gradient} opacity-50`}></div>
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
@@ -293,7 +329,7 @@ function ListSlide({ slide }: { slide: Slide }) {
     return (
         <div className="z-10 w-full max-w-5xl space-y-8">
             <h2 className="animate-in text-3xl md:text-5xl font-bold text-center" style={SF}>{slide.title}</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{(slide.items || []).map((item: any, i: number) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{((slide.items ?? []) as ListItem[]).map((item, i) => (
                 <div key={i} className="animate-in rounded-2xl bg-white/5 border border-white/10 p-6 space-y-2">
                     <div className="flex items-center gap-3"><div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${a.gradient} flex items-center justify-center text-white font-bold text-sm shadow-lg ${a.glow}`}>{i + 1}</div><h3 className="text-xl font-bold text-white">{item.term}</h3></div>
                     <p className="text-gray-400 text-lg pl-11">{item.definition}</p>
@@ -409,10 +445,10 @@ function MindmapSlide({ slide }: { slide: Slide }) {
             <div className="flex flex-col items-center gap-6">
                 <div className={`animate-in rounded-2xl bg-gradient-to-br ${a.gradient} px-10 py-6 text-white font-bold text-2xl shadow-2xl ${a.glow}`}>{slide.center}</div>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 w-full">
-                    {(slide.branches || []).map((b: any, i: number) => (
+                    {((slide.branches ?? []) as BranchItem[]).map((b, i) => (
                         <div key={i} className={`animate-in rounded-2xl ${a.bg} border ${a.border} p-5 space-y-3`}>
                             <h4 className={`font-bold text-lg ${a.text}`}>{typeof b === "string" ? b : b.label}</h4>
-                            {b.children && b.children.map((c: string, j: number) => <p key={j} className="text-sm text-gray-400 pl-3 border-l border-white/10">{c}</p>)}
+                            {typeof b !== "string" && b.children && b.children.map((c: string, j: number) => <p key={j} className="text-sm text-gray-400 pl-3 border-l border-white/10">{c}</p>)}
                         </div>
                     ))}
                 </div>
@@ -474,11 +510,11 @@ function StepsSlide({ slide }: { slide: Slide }) {
         <div className="z-10 w-full max-w-6xl space-y-8">
             <h2 className="animate-in text-3xl md:text-5xl font-bold text-center" style={SF}>{slide.title}</h2>
             <div className="flex flex-wrap justify-center gap-4">
-                {(slide.steps || []).map((s: any, i: number) => (
+                {((slide.steps ?? []) as TimelineStep[]).map((s, i, steps) => (
                     <div key={i} className="animate-in flex items-center gap-3">
                         <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${a.gradient} flex items-center justify-center text-white font-bold text-xl shadow-xl ${a.glow}`}>{i + 1}</div>
                         <div className="rounded-xl bg-white/5 border border-white/10 px-5 py-3 max-w-[200px]"><p className="text-white font-medium">{typeof s === "string" ? s : s.step || s.label || JSON.stringify(s)}</p></div>
-                        {i < (slide.steps || []).length - 1 && <span className="text-gray-600 text-2xl">→</span>}
+                        {i < steps.length - 1 && <span className="text-gray-600 text-2xl">→</span>}
                     </div>
                 ))}
             </div>
@@ -532,7 +568,18 @@ function PieChartSlide({ slide }: { slide: Slide }) {
     const r = 100;
     const cx = 120;
     const cy = 100;
-    let offset = 0;
+    const circumference = 2 * Math.PI * r;
+    const segmentMeta = data.reduce<{ startOffsets: number[]; totalPct: number }>(
+        (acc, d) => {
+            const pct = d.value / total;
+            const startOffset = acc.totalPct * circumference;
+            return {
+                totalPct: acc.totalPct + pct,
+                startOffsets: [...acc.startOffsets, startOffset],
+            };
+        },
+        { startOffsets: [], totalPct: 0 }
+    );
     return (
         <div className="z-10 w-full max-w-5xl flex flex-col md:flex-row items-center gap-12">
             <div className="flex-1 space-y-4">
@@ -554,9 +601,8 @@ function PieChartSlide({ slide }: { slide: Slide }) {
                 <svg width={240} height={200} viewBox="0 0 240 200">
                     {data.map((d: { label: string; value: number; color?: string }, i: number) => {
                         const pct = d.value / total;
-                        const dashLen = 2 * Math.PI * r * pct;
-                        const dashOffset = 2 * Math.PI * r - offset;
-                        offset += 2 * Math.PI * r * pct;
+                        const dashLen = circumference * pct;
+                        const dashOffset = circumference - (segmentMeta.startOffsets[i] ?? 0);
                         const c = d.color || CHART_COLORS[i % CHART_COLORS.length];
                         return (
                             <circle key={i} cx={cx} cy={cy} r={r} fill="none" stroke={c} strokeWidth={36} strokeDasharray={2 * Math.PI * r} strokeDashoffset={dashOffset} transform={`rotate(-90 ${cx} ${cy})`} />
@@ -658,7 +704,8 @@ function GenericSlide({ slide }: { slide: Slide }) {
 /* ═══════════════ SLIDE ROUTER ═══════════════ */
 function renderSlide(slide: Slide) {
     const map: Record<string, React.FC<{ slide: Slide }>> = {
-        title: TitleSlide, content: ContentSlide, comparison: ComparisonSlide, timeline: TimelineSlide,
+        title: TitleSlide, section_header: SectionHeaderSlide, outro: OutroSlide,
+        content: ContentSlide, comparison: ComparisonSlide, timeline: TimelineSlide,
         statistic: StatisticSlide, quote: QuoteSlide, diagram: DiagramSlide, list: ListSlide,
         callout: CalloutSlide, summary: SummarySlide, code: CodeSlide, definition: DefinitionSlide,
         pros_cons: ProsConsSlide, equation: EquationSlide, mindmap: MindmapSlide, table: TableSlide,
@@ -671,7 +718,6 @@ function renderSlide(slide: Slide) {
 }
 
 /* ═══════════════ BACKGROUND AUDIO ═══════════════ */
-const AMBIENT_AUDIO = "https://cdn.pixabay.com/audio/2024/11/28/audio_7a0827a05a.mp3";
 
 /* ═══════════════ MAIN PLAYER ═══════════════ */
 export default function PresentationPlayer({ slides }: { slides: Slide[] }) {
@@ -688,11 +734,23 @@ export default function PresentationPlayer({ slides }: { slides: Slide[] }) {
     // Get settings store directly in component since it's a client component
     const presentationSettings = useSettingsStore((state) => state.presentation);
     const enableVoice = presentationSettings?.enableVoice || false;
+    const enableMusic = presentationSettings?.enableMusic ?? true;
+    const musicMood = presentationSettings?.musicMood ?? "calm";
+    const musicVolumeSetting = presentationSettings?.musicVolume ?? 0.25;
     const [showShortcuts, setShowShortcuts] = useState(false);
     const router = useRouter();
 
+    const musicUrl = getMusicUrl(musicMood);
+
     useEffect(() => {
-        const audio = new Audio(AMBIENT_AUDIO);
+        if (!musicUrl || !enableMusic) {
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.src = "";
+            }
+            return;
+        }
+        const audio = new Audio(musicUrl);
         audio.loop = true;
         audio.volume = 0;
         audioRef.current = audio;
@@ -703,25 +761,25 @@ export default function PresentationPlayer({ slides }: { slides: Slide[] }) {
                 window.speechSynthesis.cancel();
             }
         };
-    }, []);
+    }, [musicUrl, enableMusic]);
 
-    // Sync ambient and TTS audio with play/mute state changes
+    // Sync background music: duck when voice is on, apply volume and mute
     useEffect(() => {
-        if (!audioRef.current) return;
+        if (!audioRef.current || !musicUrl || !enableMusic) return;
 
-        // Lower ambient volume if voice is enabled to make speech clearer
-        const targetVolume = enableVoice ? volume * 0.3 : volume;
-        audioRef.current.volume = isMuted ? 0 : targetVolume;
+        const baseVolume = volume * musicVolumeSetting;
+        const targetVolume = enableVoice ? baseVolume * 0.35 : baseVolume;
+        audioRef.current.volume = isMuted ? 0 : Math.min(1, targetVolume);
 
         if (isPlaying) {
-            audioRef.current.play().catch(() => { });
+            audioRef.current.play().catch(() => {});
         } else {
             audioRef.current.pause();
             if (typeof window !== "undefined" && window.speechSynthesis) {
                 window.speechSynthesis.cancel();
             }
         }
-    }, [isPlaying, isMuted, volume, enableVoice]);
+    }, [isPlaying, isMuted, volume, enableVoice, musicVolumeSetting, musicUrl, enableMusic]);
 
     const nextSlide = useCallback(() => {
         if (currentSlide < slides.length - 1) setCurrentSlide(prev => prev + 1);

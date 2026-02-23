@@ -19,8 +19,11 @@ export async function POST(req: Request) {
             );
         }
 
-        // Build dynamic settings from user preferences
-        const tone = settings?.tone || "professional";
+        // Build dynamic settings from user preferences (validate tone from settings)
+        const allowedTones = ["professional", "casual", "academic", "fun", "storytelling", "tech-deep-dive"] as const;
+        const tone = allowedTones.includes(settings?.tone as typeof allowedTones[number])
+            ? (settings.tone as typeof allowedTones[number])
+            : "professional";
         const slideCount = settings?.slideCount || "medium";
         const style = settings?.style || "balanced";
         const includeCode = settings?.includeCode !== false;
@@ -37,6 +40,7 @@ export async function POST(req: Request) {
             academic: "Use a research-oriented, scholarly tone with proper terminology and citations.",
             fun: "Use a playful, energetic, entertaining tone. Add humor and enthusiasm. Use emojis if appropriate.",
             storytelling: "Use a narrative-driven approach. Tell a story, build suspense, use analogies.",
+            "tech-deep-dive": "Use a technical, in-depth tone. Assume a curious audience; go into detail, use precise terms, and explain mechanisms.",
         };
 
         const styleInstructions: Record<string, string> = {
@@ -59,26 +63,37 @@ export async function POST(req: Request) {
             ? `\nADDITIONAL USER INSTRUCTIONS (CRITICAL: You MUST follow these instructions carefully. If the user asks you to act like a pirate, Do it! Act like a pirate! Ensure they apply exactly to the generated content):\n${customInstructions.trim()}`
             : "";
 
-        const prompt = `You are ExplainIt, a world-class educational content designer and visual storyteller. Your job is to transform raw text into a RICH, DETAILED, VISUALLY DIVERSE presentation that feels like a premium educational video.
+        const toneInstruction = toneInstructions[tone] ?? toneInstructions.professional;
+        const prompt = `You are ExplainIt, a world-class educational content designer and visual storyteller. Your job is to transform raw text into a RICH, DETAILED, VISUALLY DIVERSE presentation that feels like a premium YouTube-style explainer video.
 
-0. MANDATORY SETTINGS:
-TONE: ${toneInstructions[tone] || toneInstructions.professional}
+0. MANDATORY SETTINGS (apply to every slide and all wording):
+TONE (CRITICAL — match this in all narration and titles): ${toneInstruction}
 VISUAL STYLE: ${styleInstructions[style] || styleInstructions.balanced}
 You MUST strictly adhere to the Tone and Visual Style set above.
 
-CRITICAL RULES:
-1. Do NOT just copy the user's text. REWRITE, EXPAND, and ENRICH the content with your own expert knowledge while strictly following the requested tone.
-2. Add examples, analogies, data, and insights that go FAR BEYOND what the user wrote.
-3. Length/Slide Count: Generate ${slideCountRange} Make it thorough and educational.
-4. NEVER use the same slide type twice in a row.
-5. You MUST use at least 12 different slide types. Track which types you've used and prioritize unused ones.
-6. Never use the same type more than 3 times total across the entire presentation.
-7. Every 5 slides, you MUST include at least one visual-heavy type (comparison, diagram, mindmap, table, bar_chart, pie_chart, timeline, pros_cons).
-8. Each slide should have a unique accent color.${excludeLine}${customLine}
+1. YOUTUBE-STYLE STRUCTURE (follow this order):
+- HOOK: First slide must be "title" — grab attention (surprising fact, bold claim, or question in title/subtitle).
+- SETUP: Next 1–2 slides (e.g. content or list) that set up what the video will cover and why it matters.
+- CONTEXT: 1–2 slides that give brief background, definitions, or problem framing.
+- MAIN SECTIONS: 3–5 logical chapters. Start each chapter with a "section_header" slide (just the chapter title), then 1–4 content slides for that chapter. Vary slide types (content, comparison, diagram, statistic, etc.).
+- SUMMARY: One "summary" slide with key takeaways (keyPoints array + closingLine).
+- BRANDING OUTRO (optional): If appropriate, end with one "outro" slide — short branded end card (title e.g. "Thanks for watching" or brand name; subtitle optional). No subscribe/CTA unless the user script asks for it.
+
+2. CRITICAL RULES:
+- Do NOT just copy the user's text. REWRITE, EXPAND, and ENRICH the content with your own expert knowledge while strictly following the requested tone.
+- Add examples, analogies, data, and insights that go FAR BEYOND what the user wrote.
+- Length/Slide Count: Generate ${slideCountRange} slides. Make it thorough and educational.
+- NEVER use the same slide type twice in a row.
+- You MUST use at least 12 different slide types. Track which types you've used and prioritize unused ones.
+- Never use the same type more than 3 times total across the entire presentation.
+- Every 5 slides, you MUST include at least one visual-heavy type (comparison, diagram, mindmap, table, bar_chart, pie_chart, timeline, pros_cons).
+- Each slide should have a unique accent color.${excludeLine}${customLine}
 
 AVAILABLE SLIDE TYPES (use as many different types as possible):
 
-"title" — Opening splash. Fields: title, subtitle
+"title" — Opening splash (hook). Fields: title, subtitle
+"section_header" — Chapter/section title only. Fields: title, subtitle (optional). Use to start each of the 3–5 main chapters.
+"outro" — Branding end card. Fields: title (e.g. "Thanks for watching"), subtitle (optional). No CTA unless user asked.
 "content" — Key point + bullets. Fields: title, bullets[], layout?("default"|"cards"|"numbered"|"icon-list")
 "comparison" — Side-by-side A vs B. Fields: title, labelA, labelB, bulletsA[], bulletsB[], layout?("side-by-side"|"stacked"|"versus")
 "timeline" — Step-by-step process. Fields: title, steps[{step, detail}], layout?("vertical"|"horizontal"|"zigzag")
@@ -217,5 +232,6 @@ function fallbackParse(script: string) {
     }
 
     slides.push({ id: slides.length + 1, type: "summary", title: "Summary", keyPoints: sentences.slice(0, 3), closingLine: sentences[sentences.length - 1] || "That's a wrap!", accent: "emerald" });
+    slides.push({ id: slides.length + 1, type: "outro", title: "Thanks for watching", subtitle: "", accent: "purple" });
     return slides;
 }

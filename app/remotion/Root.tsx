@@ -1,7 +1,7 @@
 import React from "react";
 import { Composition, Series } from "remotion";
 import {
-    TitleSlide, ContentSlide, ComparisonSlide, TimelineSlide,
+    TitleSlide, SectionHeaderSlide, OutroSlide, ContentSlide, ComparisonSlide, TimelineSlide,
     StatisticSlide, QuoteSlide, DiagramSlide, ListSlide,
     CalloutSlide, SummarySlide, CodeSlide, DefinitionSlide,
     ProsConsSlide, EquationSlide, MindmapSlide, TableSlide,
@@ -14,10 +14,10 @@ import type { Slide } from "../types";
 const SLIDE_DURATION_FRAMES = 150; // 5 seconds at 30fps
 
 const slideMap: Record<string, React.FC<{ slide: Slide }>> = {
-    title: TitleSlide, content: ContentSlide, comparison: ComparisonSlide,
-    timeline: TimelineSlide, statistic: StatisticSlide, quote: QuoteSlide,
-    diagram: DiagramSlide, list: ListSlide, callout: CalloutSlide,
-    summary: SummarySlide, code: CodeSlide, definition: DefinitionSlide,
+    title: TitleSlide, section_header: SectionHeaderSlide, outro: OutroSlide,
+    content: ContentSlide, comparison: ComparisonSlide, timeline: TimelineSlide,
+    statistic: StatisticSlide, quote: QuoteSlide, diagram: DiagramSlide, list: ListSlide,
+    callout: CalloutSlide, summary: SummarySlide, code: CodeSlide, definition: DefinitionSlide,
     pros_cons: ProsConsSlide, equation: EquationSlide, mindmap: MindmapSlide,
     table: TableSlide, example: ExampleSlide, funfact: FunfactSlide,
     steps: StepsSlide, highlight: HighlightSlide,
