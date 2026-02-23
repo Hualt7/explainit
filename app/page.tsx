@@ -94,7 +94,7 @@ export default function Home() {
               <br />
               <span ref={heroTextRef} className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-blue-500 animate-gradient">
                 {"stunning videos.".split("").map((char, i) => (
-                  <span key={i} className="hero-letter inline-block" style={{ opacity: 0 }}>
+                  <span key={i} className="hero-letter inline-block">
                     {char === " " ? "\u00a0" : char}
                   </span>
                 ))}
