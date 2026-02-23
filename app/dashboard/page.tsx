@@ -1,27 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "../lib/supabase/client";
 import {
-    Video,
-    Settings,
-    LogOut,
-    Plus,
     Play,
     Download,
     Layout,
-    Type,
-    Image as ImageIcon,
-    Layers
 } from "lucide-react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
 import { useProjectStore } from "../store/useProjectStore";
 import dynamic from "next/dynamic";
 import { ExplainItVideo, SLIDE_DURATION_FRAMES } from "../remotion/Root";
-
 import { useSettingsStore } from "../store/useSettingsStore";
+import { useToastStore } from "../store/useToastStore";
+import SlideEditor from "../components/SlideEditor";
 
 const VideoPreview = dynamic(() => import("../remotion/VideoPreview"), {
     ssr: false,
@@ -46,7 +37,7 @@ export default function Dashboard() {
     const setCurrentProjectId = useProjectStore((state) => state.setCurrentProjectId);
     const projectTitle = useProjectStore((state) => state.projectTitle);
     const aiSettings = useSettingsStore((state) => state.ai);
-    const router = useRouter();
+    const addToast = useToastStore((state) => state.addToast);
 
     const setScriptText = (text: string) => {
         setScriptTextLocal(text);
@@ -67,12 +58,12 @@ export default function Dashboard() {
 
             if (response.ok) {
                 setGeneratedSlides(data.slides);
+                addToast(`Generated ${data.slides.length} slides`, "success");
             } else {
-                console.error("Failed to generate:", data.error);
-                alert("Failed to generate slides. Please try again.");
+                addToast("Failed to generate slides. Please try again.", "error");
             }
         } catch (error) {
-            console.error("Error calling generate API:", error);
+            addToast("Network error while generating slides.", "error");
         } finally {
             setIsGenerating(false);
         }
@@ -113,8 +104,7 @@ export default function Dashboard() {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         } catch (error: any) {
-            console.error("Export error:", error);
-            alert(`Export failed: ${error.message}`);
+            addToast(`Export failed: ${error.message}`, "error");
         } finally {
             setIsExporting(false);
             setExportProgress(0);
@@ -139,7 +129,7 @@ export default function Dashboard() {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        title: generatedSlides[0]?.content || 'Untitled Project',
+                        title: generatedSlides[0]?.title || 'Untitled Project',
                         script: scriptText,
                         slides: generatedSlides,
                     }),
@@ -149,62 +139,16 @@ export default function Dashboard() {
                     setCurrentProjectId(data.project.id);
                 }
             }
+            addToast("Project saved", "success");
         } catch (error) {
-            console.error('Save error:', error);
+            addToast("Failed to save project.", "error");
         } finally {
             setIsSaving(false);
         }
     };
 
-    const handleLogout = async () => {
-        const supabase = createClient();
-        await supabase.auth.signOut();
-        router.push('/login');
-    };
-
-    const getIcon = (iconName: string) => {
-        switch (iconName) {
-            case 'Layout': return Layout;
-            case 'ImageIcon': return ImageIcon;
-            case 'Type': return Type;
-            case 'Layers': return Layers;
-            default: return Layout;
-        }
-    };
-
     return (
-        <div className="flex h-screen bg-black text-white overflow-hidden">
-            {/* Sidebar */}
-            <aside className="w-64 border-r border-white/10 bg-black/50 p-4 flex flex-col hidden md:flex">
-                <div className="flex items-center gap-2 px-2 py-4 mb-8">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center">
-                        <Video className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="font-bold text-xl tracking-tight">ExplainIt</span>
-                </div>
-
-                <nav className="flex-1 space-y-2">
-                    <Link href="/dashboard/projects" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-400 font-medium transition-colors">
-                        <Layout className="w-5 h-5" /> Projects
-                    </Link>
-                    <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/10 text-white font-medium">
-                        <Plus className="w-5 h-5" /> New Project
-                    </Link>
-                    <Link href="/settings" className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-400 font-medium transition-colors">
-                        <Settings className="w-5 h-5" /> Settings
-                    </Link>
-                </nav>
-
-                <button
-                    onClick={handleLogout}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-400 font-medium transition-colors mt-auto"
-                >
-                    <LogOut className="w-5 h-5" /> Log out
-                </button>
-            </aside>
-
-            {/* Main Content */}
-            <main className="flex-1 flex flex-col h-full relative">
+        <main className="flex-1 flex flex-col h-full relative">
                 {/* Header */}
                 <header className="h-16 flex items-center justify-between px-6 border-b border-white/10 shrink-0">
                     <h1 className="font-semibold text-lg">{currentProjectId ? projectTitle : "New Project"}</h1>
@@ -265,7 +209,6 @@ export default function Dashboard() {
                                     {/* Remotion Video Player */}
                                     <VideoPreview slides={generatedSlides} />
 
-                                    {/* Slides Timeline */}
                                     <div className="space-y-3">
                                         <div className="flex items-center justify-between mb-4">
                                             <h3 className="text-sm font-medium text-gray-400">Generated Scenes</h3>
@@ -292,36 +235,17 @@ export default function Dashboard() {
                                             </div>
                                         </div>
 
-                                        <AnimatePresence>
-                                            {generatedSlides.map((slide, i) => {
-                                                const IconComponent = getIcon(slide.icon);
-                                                return (
-                                                    <motion.div
-                                                        key={slide.id}
-                                                        initial={{ opacity: 0, x: 20 }}
-                                                        animate={{ opacity: 1, x: 0 }}
-                                                        transition={{ delay: i * 0.1 }}
-                                                        className="flex items-center gap-4 bg-white/5 border border-white/10 p-3 rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
-                                                    >
-                                                        <div className="w-10 h-10 rounded-lg bg-black/50 flex items-center justify-center border border-white/5">
-                                                            <IconComponent className="w-4 h-4 text-purple-400" />
-                                                        </div>
-                                                        <div className="flex-1">
-                                                            <div className="text-xs text-gray-500 uppercase font-semibold mb-1">Scene {i + 1} ({slide.type})</div>
-                                                            <div className="text-sm font-medium truncate">{slide.content}</div>
-                                                        </div>
-                                                    </motion.div>
-                                                );
-                                            })}
-                                        </AnimatePresence>
+                                        <SlideEditor
+                                            slides={generatedSlides}
+                                            onSlidesChange={setGeneratedSlides}
+                                        />
                                     </div>
                                 </div>
                             )}
                         </div>
                     </div>
                 </div>
-            </main>
-        </div>
+        </main>
     );
 }
 

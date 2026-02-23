@@ -1,14 +1,15 @@
 "use client";
 
 import PresentationPlayer from "./player";
+import ErrorBoundary from "../components/ErrorBoundary";
 import { useProjectStore } from "../store/useProjectStore";
 
 const mockSlides = [
-    { id: 1, type: "title", content: "Understanding React Context", icon: "Layout" },
-    { id: 2, type: "content", content: "Prop drilling makes passing data through many layers very tedious.", icon: "Layers" },
-    { id: 3, type: "diagram", content: "Context Provider vs Consumer", icon: "ImageIcon" },
-    { id: 4, type: "content", content: "The Provider component holds the state at the top of the tree.", icon: "Layers" },
-    { id: 5, type: "summary", content: "Use Context to share global state like themes or user sessions without passing props manually.", icon: "Type" },
+    { id: 1, type: "title", title: "Understanding React Context", subtitle: "A primer on state management" },
+    { id: 2, type: "content", title: "The Prop Drilling Problem", bullets: ["Passing data through many layers is tedious", "Intermediate components don't need the data", "Code becomes harder to maintain"] },
+    { id: 3, type: "diagram", title: "Context Provider vs Consumer", nodes: [{ label: "Provider" }, { label: "Context" }, { label: "Consumer" }], description: "Context wraps the tree so consumers can access data directly." },
+    { id: 4, type: "content", title: "How Context Works", bullets: ["Provider holds the state at the top of the tree", "Any nested component can consume the context", "No need to pass props through intermediate layers"] },
+    { id: 5, type: "summary", title: "Key Takeaways", keyPoints: ["Context solves prop drilling", "Use it for global state like themes or auth", "Don't overuse it for local state"], closingLine: "Context is a powerful tool when used wisely." },
 ];
 
 export default function PresentationPage() {
@@ -16,6 +17,8 @@ export default function PresentationPage() {
     const slides = generatedSlides.length > 0 ? generatedSlides : mockSlides;
 
     return (
-        <PresentationPlayer slides={slides} />
-    )
+        <ErrorBoundary fallbackMessage="Something went wrong during the presentation. Try going back to the dashboard.">
+            <PresentationPlayer slides={slides} />
+        </ErrorBoundary>
+    );
 }

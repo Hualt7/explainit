@@ -1,11 +1,13 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Play, Pause, SkipBack, SkipForward, ArrowLeft, Download, CheckCircle, AlertTriangle, Lightbulb, Volume2, VolumeX, X as XIcon, ThumbsUp, ThumbsDown } from "lucide-react"
+import { Play, Pause, SkipBack, SkipForward, ArrowLeft, Download, CheckCircle, AlertTriangle, Lightbulb, Volume2, VolumeX, X as XIcon, ThumbsUp, ThumbsDown, Keyboard } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { animate, stagger } from "animejs"
 import { useSettingsStore } from "../store/useSettingsStore"
+import type { Slide } from "../types"
 
 /* ─── Accent color map ─── */
 const accentColors: Record<string, { gradient: string; bg: string; border: string; text: string; glow: string; rgb: string }> = {
@@ -27,7 +29,7 @@ const SF = { fontFamily: "var(--font-space-grotesk), 'Space Grotesk', sans-serif
 
 /* ═══════════════ SLIDE RENDERERS ═══════════════ */
 
-function TitleSlide({ slide }: { slide: any }) {
+function TitleSlide({ slide }: { slide: Slide }) {
     const a = getAccent(slide.accent);
     return (
         <div className="text-center z-10 max-w-5xl mx-auto space-y-8">
@@ -39,7 +41,7 @@ function TitleSlide({ slide }: { slide: any }) {
     );
 }
 
-function ContentSlide({ slide }: { slide: any }) {
+function ContentSlide({ slide }: { slide: Slide }) {
     const a = getAccent(slide.accent);
     return (
         <div className="z-10 w-full max-w-5xl">
@@ -59,7 +61,7 @@ function ContentSlide({ slide }: { slide: any }) {
     );
 }
 
-function ComparisonSlide({ slide }: { slide: any }) {
+function ComparisonSlide({ slide }: { slide: Slide }) {
     const a = getAccent(slide.accent);
     return (
         <div className="z-10 w-full max-w-6xl space-y-8">
@@ -78,7 +80,7 @@ function ComparisonSlide({ slide }: { slide: any }) {
     );
 }
 
-function TimelineSlide({ slide }: { slide: any }) {
+function TimelineSlide({ slide }: { slide: Slide }) {
     const a = getAccent(slide.accent);
     return (
         <div className="z-10 w-full max-w-5xl space-y-8">
@@ -96,7 +98,7 @@ function TimelineSlide({ slide }: { slide: any }) {
     );
 }
 
-function StatisticSlide({ slide }: { slide: any }) {
+function StatisticSlide({ slide }: { slide: Slide }) {
     const a = getAccent(slide.accent);
     const numberRef = useRef<HTMLSpanElement>(null);
 
@@ -132,7 +134,7 @@ function StatisticSlide({ slide }: { slide: any }) {
     );
 }
 
-function QuoteSlide({ slide }: { slide: any }) {
+function QuoteSlide({ slide }: { slide: Slide }) {
     const a = getAccent(slide.accent);
     return (
         <div className="z-10 max-w-4xl mx-auto text-center space-y-8">
@@ -146,7 +148,7 @@ function QuoteSlide({ slide }: { slide: any }) {
     );
 }
 
-function DiagramSlide({ slide }: { slide: any }) {
+function DiagramSlide({ slide }: { slide: Slide }) {
     const a = getAccent(slide.accent);
     return (
         <div className="z-10 w-full max-w-5xl flex flex-col md:flex-row items-center gap-12">
@@ -168,7 +170,7 @@ function DiagramSlide({ slide }: { slide: any }) {
     );
 }
 
-function ListSlide({ slide }: { slide: any }) {
+function ListSlide({ slide }: { slide: Slide }) {
     const a = getAccent(slide.accent);
     return (
         <div className="z-10 w-full max-w-5xl space-y-8">
@@ -183,7 +185,7 @@ function ListSlide({ slide }: { slide: any }) {
     );
 }
 
-function CalloutSlide({ slide }: { slide: any }) {
+function CalloutSlide({ slide }: { slide: Slide }) {
     const a = getAccent(slide.accent);
     const labels: Record<string, string> = { tip: "💡 Pro Tip", warning: "⚠️ Warning", insight: "✨ Key Insight" };
     return (
@@ -200,7 +202,7 @@ function CalloutSlide({ slide }: { slide: any }) {
     );
 }
 
-function SummarySlide({ slide }: { slide: any }) {
+function SummarySlide({ slide }: { slide: Slide }) {
     const a = getAccent(slide.accent);
     return (
         <div className="text-center z-10 max-w-4xl mx-auto space-y-10">
@@ -218,7 +220,7 @@ function SummarySlide({ slide }: { slide: any }) {
 
 /* ─── NEW v3 TYPES ─── */
 
-function CodeSlide({ slide }: { slide: any }) {
+function CodeSlide({ slide }: { slide: Slide }) {
     const a = getAccent(slide.accent);
     return (
         <div className="z-10 w-full max-w-5xl space-y-6">
@@ -235,7 +237,7 @@ function CodeSlide({ slide }: { slide: any }) {
     );
 }
 
-function DefinitionSlide({ slide }: { slide: any }) {
+function DefinitionSlide({ slide }: { slide: Slide }) {
     const a = getAccent(slide.accent);
     return (
         <div className="z-10 max-w-4xl mx-auto space-y-6 text-center">
@@ -249,7 +251,7 @@ function DefinitionSlide({ slide }: { slide: any }) {
     );
 }
 
-function ProsConsSlide({ slide }: { slide: any }) {
+function ProsConsSlide({ slide }: { slide: Slide }) {
     const a = getAccent(slide.accent);
     return (
         <div className="z-10 w-full max-w-6xl space-y-8">
@@ -268,7 +270,7 @@ function ProsConsSlide({ slide }: { slide: any }) {
     );
 }
 
-function EquationSlide({ slide }: { slide: any }) {
+function EquationSlide({ slide }: { slide: Slide }) {
     const a = getAccent(slide.accent);
     return (
         <div className="z-10 text-center max-w-4xl mx-auto space-y-8">
@@ -281,7 +283,7 @@ function EquationSlide({ slide }: { slide: any }) {
     );
 }
 
-function MindmapSlide({ slide }: { slide: any }) {
+function MindmapSlide({ slide }: { slide: Slide }) {
     const a = getAccent(slide.accent);
     return (
         <div className="z-10 w-full max-w-5xl space-y-8">
@@ -301,7 +303,7 @@ function MindmapSlide({ slide }: { slide: any }) {
     );
 }
 
-function TableSlide({ slide }: { slide: any }) {
+function TableSlide({ slide }: { slide: Slide }) {
     const a = getAccent(slide.accent);
     return (
         <div className="z-10 w-full max-w-5xl space-y-8">
@@ -320,7 +322,7 @@ function TableSlide({ slide }: { slide: any }) {
     );
 }
 
-function ExampleSlide({ slide }: { slide: any }) {
+function ExampleSlide({ slide }: { slide: Slide }) {
     const a = getAccent(slide.accent);
     return (
         <div className="z-10 max-w-4xl mx-auto space-y-6">
@@ -334,7 +336,7 @@ function ExampleSlide({ slide }: { slide: any }) {
     );
 }
 
-function FunfactSlide({ slide }: { slide: any }) {
+function FunfactSlide({ slide }: { slide: Slide }) {
     const a = getAccent(slide.accent);
     return (
         <div className="z-10 text-center max-w-4xl mx-auto space-y-8">
@@ -348,7 +350,7 @@ function FunfactSlide({ slide }: { slide: any }) {
     );
 }
 
-function StepsSlide({ slide }: { slide: any }) {
+function StepsSlide({ slide }: { slide: Slide }) {
     const a = getAccent(slide.accent);
     return (
         <div className="z-10 w-full max-w-6xl space-y-8">
@@ -366,7 +368,7 @@ function StepsSlide({ slide }: { slide: any }) {
     );
 }
 
-function HighlightSlide({ slide }: { slide: any }) {
+function HighlightSlide({ slide }: { slide: Slide }) {
     const a = getAccent(slide.accent);
     return (
         <div className="z-10 text-center max-w-5xl mx-auto space-y-6">
@@ -378,7 +380,7 @@ function HighlightSlide({ slide }: { slide: any }) {
 }
 
 /* ─── GENERIC FALLBACK for AI-invented types ─── */
-function GenericSlide({ slide }: { slide: any }) {
+function GenericSlide({ slide }: { slide: Slide }) {
     const a = getAccent(slide.accent);
     const entries = Object.entries(slide).filter(([k]) => !["id", "type", "accent", "icon"].includes(k));
     return (
@@ -399,8 +401,8 @@ function GenericSlide({ slide }: { slide: any }) {
 }
 
 /* ═══════════════ SLIDE ROUTER ═══════════════ */
-function renderSlide(slide: any) {
-    const map: Record<string, any> = {
+function renderSlide(slide: Slide) {
+    const map: Record<string, React.FC<{ slide: Slide }>> = {
         title: TitleSlide, content: ContentSlide, comparison: ComparisonSlide, timeline: TimelineSlide,
         statistic: StatisticSlide, quote: QuoteSlide, diagram: DiagramSlide, list: ListSlide,
         callout: CalloutSlide, summary: SummarySlide, code: CodeSlide, definition: DefinitionSlide,
@@ -415,7 +417,7 @@ function renderSlide(slide: any) {
 const AMBIENT_AUDIO = "https://cdn.pixabay.com/audio/2024/11/28/audio_7a0827a05a.mp3";
 
 /* ═══════════════ MAIN PLAYER ═══════════════ */
-export default function PresentationPlayer({ slides }: { slides: any[] }) {
+export default function PresentationPlayer({ slides }: { slides: Slide[] }) {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isPlaying, setIsPlaying] = useState(true);
     const [isExporting, setIsExporting] = useState(false);
@@ -430,14 +432,15 @@ export default function PresentationPlayer({ slides }: { slides: any[] }) {
     const ttsAudioRef = useRef<HTMLAudioElement | null>(null);
 
     // Get settings store directly in component since it's a client component
-    const presentationSettings = useSettingsStore((state: any) => state.presentation);
+    const presentationSettings = useSettingsStore((state) => state.presentation);
     const enableVoice = presentationSettings?.enableVoice || false;
+    const [showShortcuts, setShowShortcuts] = useState(false);
+    const router = useRouter();
 
-    // Initialize ambient audio
     useEffect(() => {
         const audio = new Audio(AMBIENT_AUDIO);
         audio.loop = true;
-        audio.volume = volume;
+        audio.volume = 0;
         audioRef.current = audio;
         return () => {
             audio.pause();
@@ -494,9 +497,10 @@ export default function PresentationPlayer({ slides }: { slides: any[] }) {
         const slide = slides[currentSlide];
         if (!slide) return;
 
-        // If voice is disabled, fallback to simple 5-second timer
+        const slideDurationMs = (presentationSettings?.slideDuration || 5) * 1000;
+
         if (!enableVoice) {
-            autoPlayTimer.current = setTimeout(nextSlide, 5000);
+            autoPlayTimer.current = setTimeout(nextSlide, slideDurationMs);
             return;
         }
 
@@ -513,8 +517,7 @@ export default function PresentationPlayer({ slides }: { slides: any[] }) {
         if (slide.fact) textToRead += slide.fact + ". ";
 
         if (!textToRead.trim()) {
-            // No text to read, fallback to 5 seconds
-            autoPlayTimer.current = setTimeout(nextSlide, 5000);
+            autoPlayTimer.current = setTimeout(nextSlide, slideDurationMs);
             return;
         }
 
@@ -550,8 +553,7 @@ export default function PresentationPlayer({ slides }: { slides: any[] }) {
                 }
             } catch (error) {
                 console.error("Failed to fetch TTS:", error);
-                // Fallback to 5-second timer if generation fails
-                if (isActive) autoPlayTimer.current = setTimeout(nextSlide, 5000);
+                if (isActive) autoPlayTimer.current = setTimeout(nextSlide, slideDurationMs);
             }
         };
 
@@ -571,12 +573,38 @@ export default function PresentationPlayer({ slides }: { slides: any[] }) {
         if (!slides || slides.length === 0) return;
         setIsExporting(true);
         try {
-            const response = await fetch('/api/export', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slides }) });
-            if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.details || 'Export failed'); }
-            const blob = await response.blob();
+            const { renderMediaOnWeb } = await import("@remotion/web-renderer");
+            const { ExplainItVideo, SLIDE_DURATION_FRAMES } = await import("../remotion/Root");
+            const totalFrames = slides.length * SLIDE_DURATION_FRAMES;
+
+            const { getBlob } = await renderMediaOnWeb({
+                composition: {
+                    component: () => <ExplainItVideo slides={slides} />,
+                    durationInFrames: totalFrames,
+                    fps: 30,
+                    width: 1920,
+                    height: 1080,
+                    id: "ExplainItVideo",
+                    defaultProps: { slides },
+                },
+                inputProps: { slides },
+                onProgress: () => {},
+            });
+
+            const blob = await getBlob();
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = 'explainit-presentation.mp4'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-        } catch (error: any) { alert(`Export failed: ${error.message}.`); } finally { setIsExporting(false); }
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "explainit-presentation.mp4";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (error: any) {
+            alert(`Export failed: ${error.message}.`);
+        } finally {
+            setIsExporting(false);
+        }
     };
 
     useEffect(() => {
@@ -659,6 +687,47 @@ export default function PresentationPlayer({ slides }: { slides: any[] }) {
         }
     }, [currentSlide]);
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+            switch (e.key) {
+                case "ArrowRight":
+                    e.preventDefault();
+                    if (currentSlide < slides.length - 1) setCurrentSlide(prev => prev + 1);
+                    break;
+                case "ArrowLeft":
+                    e.preventDefault();
+                    if (currentSlide > 0) setCurrentSlide(prev => prev - 1);
+                    break;
+                case " ":
+                    e.preventDefault();
+                    setIsPlaying(prev => !prev);
+                    break;
+                case "Escape":
+                    e.preventDefault();
+                    router.push("/dashboard");
+                    break;
+                case "m":
+                case "M":
+                    setIsMuted(prev => !prev);
+                    break;
+                case "f":
+                case "F":
+                    if (document.fullscreenElement) {
+                        document.exitFullscreen();
+                    } else {
+                        document.documentElement.requestFullscreen();
+                    }
+                    break;
+                case "?":
+                    setShowShortcuts(prev => !prev);
+                    break;
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [currentSlide, slides.length, router]);
+
     if (!slides || slides.length === 0) return <div className="flex h-screen items-center justify-center text-white bg-black">No slides to display.</div>;
 
     const slide = slides[currentSlide];
@@ -677,6 +746,9 @@ export default function PresentationPlayer({ slides }: { slides: any[] }) {
                     </button>
                     <input type="range" min="0" max="1" step="0.05" value={isMuted ? 0 : volume} onChange={e => { setVolume(parseFloat(e.target.value)); setIsMuted(false); }}
                         className="w-20 h-1 bg-white/20 rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white" />
+                    <button onClick={() => setShowShortcuts(true)} className="text-gray-400 hover:text-white transition-colors p-2 hidden md:block" title="Keyboard shortcuts (?)">
+                        <Keyboard className="w-5 h-5" />
+                    </button>
                     {isExporting ? (
                         <button disabled className="flex items-center gap-2 bg-purple-600/50 text-white/70 px-5 py-2.5 rounded-full font-medium cursor-not-allowed"><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>Rendering...</button>
                     ) : (
@@ -721,6 +793,46 @@ export default function PresentationPlayer({ slides }: { slides: any[] }) {
 
                 <div className="w-24 text-right text-gray-500 font-mono text-sm tabular-nums">{currentSlide + 1} / {slides.length}</div>
             </footer>
+
+            <AnimatePresence>
+                {showShortcuts && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShowShortcuts(false)}
+                            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60]"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/95 border border-white/10 rounded-2xl p-8 z-[60] w-full max-w-sm"
+                        >
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="font-bold text-lg">Keyboard Shortcuts</h3>
+                                <button onClick={() => setShowShortcuts(false)} className="text-gray-400 hover:text-white"><XIcon className="w-5 h-5" /></button>
+                            </div>
+                            <div className="space-y-3 text-sm">
+                                {[
+                                    ["Arrow Left / Right", "Previous / Next slide"],
+                                    ["Space", "Play / Pause"],
+                                    ["M", "Toggle mute"],
+                                    ["F", "Toggle fullscreen"],
+                                    ["Esc", "Back to dashboard"],
+                                    ["?", "Show this dialog"],
+                                ].map(([key, desc]) => (
+                                    <div key={key} className="flex items-center justify-between">
+                                        <span className="text-gray-400">{desc}</span>
+                                        <kbd className="bg-white/10 border border-white/10 px-2 py-1 rounded text-xs font-mono text-gray-300">{key}</kbd>
+                                    </div>
+                                ))}
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
         </div>
     )
 }

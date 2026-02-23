@@ -2,13 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "../../lib/supabase/client";
 import {
-    Video,
-    Settings,
-    LogOut,
     Plus,
-    Layout,
     Trash2,
     Clock,
     FileText,
@@ -17,15 +12,7 @@ import {
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useProjectStore } from "../../store/useProjectStore";
-
-interface Project {
-    id: string;
-    title: string;
-    script: string;
-    slides: any[];
-    created_at: string;
-    updated_at: string;
-}
+import type { Project } from "../../types";
 
 export default function ProjectsPage() {
     const [projects, setProjects] = useState<Project[]>([]);
@@ -79,12 +66,6 @@ export default function ProjectsPage() {
         }
     };
 
-    const handleLogout = async () => {
-        const supabase = createClient();
-        await supabase.auth.signOut();
-        router.push("/login");
-    };
-
     const timeAgo = (dateStr: string) => {
         const diff = Date.now() - new Date(dateStr).getTime();
         const mins = Math.floor(diff / 60000);
@@ -98,47 +79,7 @@ export default function ProjectsPage() {
     };
 
     return (
-        <div className="flex h-screen bg-black text-white overflow-hidden">
-            {/* Sidebar */}
-            <aside className="w-64 border-r border-white/10 bg-black/50 p-4 flex flex-col hidden md:flex">
-                <div className="flex items-center gap-2 px-2 py-4 mb-8">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center">
-                        <Video className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="font-bold text-xl tracking-tight">ExplainIt</span>
-                </div>
-
-                <nav className="flex-1 space-y-2">
-                    <Link
-                        href="/dashboard/projects"
-                        className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/10 text-white font-medium"
-                    >
-                        <Layout className="w-5 h-5" /> Projects
-                    </Link>
-                    <Link
-                        href="/dashboard"
-                        className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-400 font-medium transition-colors"
-                    >
-                        <Plus className="w-5 h-5" /> New Project
-                    </Link>
-                    <Link
-                        href="/settings"
-                        className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-400 font-medium transition-colors"
-                    >
-                        <Settings className="w-5 h-5" /> Settings
-                    </Link>
-                </nav>
-
-                <button
-                    onClick={handleLogout}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-gray-400 font-medium transition-colors mt-auto"
-                >
-                    <LogOut className="w-5 h-5" /> Log out
-                </button>
-            </aside>
-
-            {/* Main Content */}
-            <main className="flex-1 flex flex-col h-full">
+        <main className="flex-1 flex flex-col h-full">
                 <header className="h-16 flex items-center justify-between px-6 border-b border-white/10 shrink-0">
                     <h1 className="font-semibold text-lg">My Projects</h1>
                     <Link
@@ -151,8 +92,24 @@ export default function ProjectsPage() {
 
                 <div className="flex-1 overflow-y-auto p-6">
                     {isLoading ? (
-                        <div className="flex items-center justify-center h-full">
-                            <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {Array.from({ length: 6 }).map((_, i) => (
+                                <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-5 animate-pulse">
+                                    <div className="flex items-start justify-between mb-3">
+                                        <div className="w-10 h-10 rounded-xl bg-white/10" />
+                                        <div className="w-8 h-8 rounded-lg bg-white/5" />
+                                    </div>
+                                    <div className="h-5 w-3/4 bg-white/10 rounded mb-2" />
+                                    <div className="space-y-1.5 mb-4">
+                                        <div className="h-3 w-full bg-white/5 rounded" />
+                                        <div className="h-3 w-2/3 bg-white/5 rounded" />
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <div className="h-3 w-16 bg-white/5 rounded" />
+                                        <div className="h-3 w-12 bg-white/5 rounded" />
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     ) : projects.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 space-y-4">
@@ -231,7 +188,6 @@ export default function ProjectsPage() {
                         </div>
                     )}
                 </div>
-            </main>
-        </div>
+        </main>
     );
 }

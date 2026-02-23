@@ -2,10 +2,9 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
-import { ArrowRight, Sparkles, Wand2, Video, Code2, Zap, Shield, Palette } from "lucide-react";
+import { ArrowRight, Sparkles, Wand2, Video, Code2, Zap, Palette } from "lucide-react";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
-import { stagger } from "framer-motion";
 import ShinyText from "./components/reactbits/ShinyText";
 import SpotlightCard from "./components/reactbits/SpotlightCard";
 import DecryptedText from "./components/reactbits/DecryptedText";
@@ -21,6 +20,12 @@ const fadeUp = {
     y: 0,
     transition: { delay: i * 0.15, duration: 0.6, ease: [0.25, 0.1, 0.25, 1] as const },
   }),
+};
+
+const featureColorMap: Record<string, { bg: string; border: string; text: string }> = {
+  purple: { bg: "bg-purple-500/10", border: "border-purple-500/20", text: "text-purple-400" },
+  blue: { bg: "bg-blue-500/10", border: "border-blue-500/20", text: "text-blue-400" },
+  pink: { bg: "bg-pink-500/10", border: "border-pink-500/20", text: "text-pink-400" },
 };
 
 export default function Home() {
@@ -232,8 +237,8 @@ export default function Home() {
               transition={{ delay: i * 0.1 }}
             >
               <SpotlightCard className="p-6 h-full group" spotlightColor={`rgba(${feature.color === "purple" ? "147,51,234" : feature.color === "blue" ? "59,130,246" : "236,72,153"}, 0.12)`}>
-                <div className={`w-12 h-12 rounded-xl bg-${feature.color}-500/10 border border-${feature.color}-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                  <feature.icon className={`w-6 h-6 text-${feature.color}-400`} />
+                <div className={`w-12 h-12 rounded-xl ${featureColorMap[feature.color].bg} border ${featureColorMap[feature.color].border} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                  <feature.icon className={`w-6 h-6 ${featureColorMap[feature.color].text}`} />
                 </div>
                 <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
                 <p className="text-gray-400 text-sm leading-relaxed">{feature.desc}</p>

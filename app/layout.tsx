@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Inter } from "next/font/google";
 import "./globals.css";
+import ToastContainer from "./components/ToastContainer";
 
 const spaceGrotesk = Space_Grotesk({
     subsets: ["latin"],
@@ -25,7 +26,10 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className={`antialiased ${inter.variable} ${spaceGrotesk.variable}`} style={{ fontFamily: "'Inter', sans-serif" }}>{children}</body>
+            <body className={`antialiased ${inter.variable} ${spaceGrotesk.variable}`} style={{ fontFamily: "'Inter', sans-serif" }}>
+                {children}
+                <ToastContainer />
+            </body>
         </html>
     );
 }

@@ -3,9 +3,8 @@ import {
     AbsoluteFill,
     interpolate,
     useCurrentFrame,
-    spring,
-    useVideoConfig,
 } from "remotion";
+import type { Slide } from "../types";
 
 /* ─── Accent Colors ─── */
 const accentMap: Record<string, string> = {
@@ -17,7 +16,7 @@ function getColor(accent?: string) { return accentMap[accent || "purple"] || acc
 const ec = { extrapolateRight: "clamp" as const };
 
 /* ─── Title ─── */
-export const TitleSlide: React.FC<{ slide: any }> = ({ slide }) => {
+export const TitleSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
     const frame = useCurrentFrame();
     const opacity = interpolate(frame, [0, 20], [0, 1], ec);
     const y = interpolate(frame, [0, 25], [40, 0], ec);
@@ -34,7 +33,7 @@ export const TitleSlide: React.FC<{ slide: any }> = ({ slide }) => {
 };
 
 /* ─── Content ─── */
-export const ContentSlide: React.FC<{ slide: any }> = ({ slide }) => {
+export const ContentSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
     const frame = useCurrentFrame();
     const color = getColor(slide.accent);
     return (
@@ -54,7 +53,7 @@ export const ContentSlide: React.FC<{ slide: any }> = ({ slide }) => {
 };
 
 /* ─── Comparison ─── */
-export const ComparisonSlide: React.FC<{ slide: any }> = ({ slide }) => {
+export const ComparisonSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
     const frame = useCurrentFrame(); const color = getColor(slide.accent);
     return (
         <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80 }}>
@@ -74,7 +73,7 @@ export const ComparisonSlide: React.FC<{ slide: any }> = ({ slide }) => {
 };
 
 /* ─── Timeline ─── */
-export const TimelineSlide: React.FC<{ slide: any }> = ({ slide }) => {
+export const TimelineSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
     const frame = useCurrentFrame(); const color = getColor(slide.accent);
     return (
         <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80 }}>
@@ -92,7 +91,7 @@ export const TimelineSlide: React.FC<{ slide: any }> = ({ slide }) => {
 };
 
 /* ─── Statistic ─── */
-export const StatisticSlide: React.FC<{ slide: any }> = ({ slide }) => {
+export const StatisticSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
     const frame = useCurrentFrame(); const color = getColor(slide.accent);
     return (
         <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80, textAlign: "center" }}>
@@ -105,7 +104,7 @@ export const StatisticSlide: React.FC<{ slide: any }> = ({ slide }) => {
 };
 
 /* ─── Quote ─── */
-export const QuoteSlide: React.FC<{ slide: any }> = ({ slide }) => {
+export const QuoteSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
     const frame = useCurrentFrame(); const color = getColor(slide.accent);
     return (
         <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", alignItems: "center", justifyContent: "center", padding: 100 }}>
@@ -119,7 +118,7 @@ export const QuoteSlide: React.FC<{ slide: any }> = ({ slide }) => {
 };
 
 /* ─── Diagram ─── */
-export const DiagramSlide: React.FC<{ slide: any }> = ({ slide }) => {
+export const DiagramSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
     const frame = useCurrentFrame(); const color = getColor(slide.accent);
     return (
         <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", alignItems: "center", justifyContent: "center", padding: 80 }}>
@@ -144,7 +143,7 @@ export const DiagramSlide: React.FC<{ slide: any }> = ({ slide }) => {
 };
 
 /* ─── List ─── */
-export const ListSlide: React.FC<{ slide: any }> = ({ slide }) => {
+export const ListSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
     const frame = useCurrentFrame(); const color = getColor(slide.accent);
     return (
         <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80 }}>
@@ -164,7 +163,7 @@ export const ListSlide: React.FC<{ slide: any }> = ({ slide }) => {
 };
 
 /* ─── Callout ─── */
-export const CalloutSlide: React.FC<{ slide: any }> = ({ slide }) => {
+export const CalloutSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
     const frame = useCurrentFrame(); const color = getColor(slide.accent);
     const labels: Record<string, string> = { tip: "💡 Pro Tip", warning: "⚠️ Warning", insight: "✨ Key Insight" };
     return (
@@ -178,7 +177,7 @@ export const CalloutSlide: React.FC<{ slide: any }> = ({ slide }) => {
 };
 
 /* ─── Summary ─── */
-export const SummarySlide: React.FC<{ slide: any }> = ({ slide }) => {
+export const SummarySlide: React.FC<{ slide: Slide }> = ({ slide }) => {
     const frame = useCurrentFrame(); const color = getColor(slide.accent);
     return (
         <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80, textAlign: "center" }}>
@@ -199,7 +198,7 @@ export const SummarySlide: React.FC<{ slide: any }> = ({ slide }) => {
 /* ═══════ NEW v3 TYPES ═══════ */
 
 /* ─── Code ─── */
-export const CodeSlide: React.FC<{ slide: any }> = ({ slide }) => {
+export const CodeSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
     const frame = useCurrentFrame(); const color = getColor(slide.accent);
     return (
         <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80 }}>
@@ -214,7 +213,7 @@ export const CodeSlide: React.FC<{ slide: any }> = ({ slide }) => {
 };
 
 /* ─── Definition ─── */
-export const DefinitionSlide: React.FC<{ slide: any }> = ({ slide }) => {
+export const DefinitionSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
     const frame = useCurrentFrame(); const color = getColor(slide.accent);
     return (
         <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", alignItems: "center", justifyContent: "center", padding: 100 }}>
@@ -229,7 +228,7 @@ export const DefinitionSlide: React.FC<{ slide: any }> = ({ slide }) => {
 };
 
 /* ─── Pros & Cons ─── */
-export const ProsConsSlide: React.FC<{ slide: any }> = ({ slide }) => {
+export const ProsConsSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
     const frame = useCurrentFrame(); const color = getColor(slide.accent);
     return (
         <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80 }}>
@@ -249,7 +248,7 @@ export const ProsConsSlide: React.FC<{ slide: any }> = ({ slide }) => {
 };
 
 /* ─── Equation ─── */
-export const EquationSlide: React.FC<{ slide: any }> = ({ slide }) => {
+export const EquationSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
     const frame = useCurrentFrame(); const color = getColor(slide.accent);
     return (
         <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 100, textAlign: "center" }}>
@@ -263,7 +262,7 @@ export const EquationSlide: React.FC<{ slide: any }> = ({ slide }) => {
 };
 
 /* ─── Mindmap ─── */
-export const MindmapSlide: React.FC<{ slide: any }> = ({ slide }) => {
+export const MindmapSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
     const frame = useCurrentFrame(); const color = getColor(slide.accent);
     return (
         <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80 }}>
@@ -284,7 +283,7 @@ export const MindmapSlide: React.FC<{ slide: any }> = ({ slide }) => {
 };
 
 /* ─── Table ─── */
-export const TableSlide: React.FC<{ slide: any }> = ({ slide }) => {
+export const TableSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
     const frame = useCurrentFrame(); const color = getColor(slide.accent);
     return (
         <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80 }}>
@@ -298,7 +297,7 @@ export const TableSlide: React.FC<{ slide: any }> = ({ slide }) => {
 };
 
 /* ─── Example ─── */
-export const ExampleSlide: React.FC<{ slide: any }> = ({ slide }) => {
+export const ExampleSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
     const frame = useCurrentFrame(); const color = getColor(slide.accent);
     return (
         <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80 }}>
@@ -313,7 +312,7 @@ export const ExampleSlide: React.FC<{ slide: any }> = ({ slide }) => {
 };
 
 /* ─── Fun Fact ─── */
-export const FunfactSlide: React.FC<{ slide: any }> = ({ slide }) => {
+export const FunfactSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
     const frame = useCurrentFrame(); const color = getColor(slide.accent);
     return (
         <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", alignItems: "center", justifyContent: "center", padding: 100 }}>
@@ -330,7 +329,7 @@ export const FunfactSlide: React.FC<{ slide: any }> = ({ slide }) => {
 };
 
 /* ─── Steps (horizontal) ─── */
-export const StepsSlide: React.FC<{ slide: any }> = ({ slide }) => {
+export const StepsSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
     const frame = useCurrentFrame(); const color = getColor(slide.accent);
     return (
         <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80 }}>
@@ -353,7 +352,7 @@ export const StepsSlide: React.FC<{ slide: any }> = ({ slide }) => {
 };
 
 /* ─── Highlight ─── */
-export const HighlightSlide: React.FC<{ slide: any }> = ({ slide }) => {
+export const HighlightSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
     const frame = useCurrentFrame(); const color = getColor(slide.accent);
     return (
         <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80, textAlign: "center" }}>
@@ -365,7 +364,7 @@ export const HighlightSlide: React.FC<{ slide: any }> = ({ slide }) => {
 };
 
 /* ─── Generic Fallback ─── */
-export const GenericSlide: React.FC<{ slide: any }> = ({ slide }) => {
+export const GenericSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
     const frame = useCurrentFrame(); const color = getColor(slide.accent);
     const entries = Object.entries(slide).filter(([k]) => !["id", "type", "accent", "icon"].includes(k));
     return (

@@ -8,16 +8,11 @@ import {
     ExampleSlide, FunfactSlide, StepsSlide, HighlightSlide,
     GenericSlide,
 } from "./Slide";
-
-interface Slide {
-    id: number;
-    type: string;
-    [key: string]: any;
-}
+import type { Slide } from "../types";
 
 const SLIDE_DURATION_FRAMES = 150; // 5 seconds at 30fps
 
-const slideMap: Record<string, React.FC<{ slide: any }>> = {
+const slideMap: Record<string, React.FC<{ slide: Slide }>> = {
     title: TitleSlide, content: ContentSlide, comparison: ComparisonSlide,
     timeline: TimelineSlide, statistic: StatisticSlide, quote: QuoteSlide,
     diagram: DiagramSlide, list: ListSlide, callout: CalloutSlide,
@@ -27,7 +22,7 @@ const slideMap: Record<string, React.FC<{ slide: any }>> = {
     steps: StepsSlide, highlight: HighlightSlide,
 };
 
-const SlideRouter: React.FC<{ slide: any }> = ({ slide }) => {
+const SlideRouter: React.FC<{ slide: Slide }> = ({ slide }) => {
     const Component = slideMap[slide.type] || GenericSlide;
     return <Component slide={slide} />;
 };

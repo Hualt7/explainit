@@ -2,13 +2,7 @@
 
 import { Player } from "@remotion/player";
 import { ExplainItVideo, SLIDE_DURATION_FRAMES } from "./Root";
-
-interface Slide {
-    id: number;
-    type: string;
-    content: string;
-    icon: string;
-}
+import type { Slide } from "../types";
 
 export default function VideoPreview({ slides }: { slides: Slide[] }) {
     return (

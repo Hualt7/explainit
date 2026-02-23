@@ -1,14 +1,7 @@
 import { create } from "zustand";
-
-interface Slide {
-    id: number;
-    type: string;
-    content: string;
-    icon: string;
-}
+import type { Slide } from "../types";
 
 interface ProjectState {
-    // Current project
     currentProjectId: string | null;
     projectTitle: string;
     generatedSlides: Slide[];
