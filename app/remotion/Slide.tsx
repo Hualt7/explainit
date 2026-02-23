@@ -169,7 +169,7 @@ export const CalloutSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
     return (
         <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", alignItems: "center", justifyContent: "center", padding: 100 }}>
             <div style={{ textAlign: "center", opacity: interpolate(frame, [0, 20], [0, 1], ec) }}>
-                <p style={{ fontSize: 20, fontWeight: 700, color, textTransform: "uppercase", letterSpacing: 4, marginBottom: 30 }}>{labels[slide.calloutType] || "✨ Note"}</p>
+                <p style={{ fontSize: 20, fontWeight: 700, color, textTransform: "uppercase", letterSpacing: 4, marginBottom: 30 }}>{(slide.calloutType && labels[slide.calloutType]) || "✨ Note"}</p>
                 <div style={{ background: `${color}15`, border: `1px solid ${color}30`, borderRadius: 24, padding: "60px 80px" }}><p style={{ fontSize: 36, color: "#fff", fontWeight: 500, lineHeight: 1.5 }}>{slide.message}</p></div>
             </div>
         </AbsoluteFill>

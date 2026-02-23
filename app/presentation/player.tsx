@@ -194,7 +194,7 @@ function CalloutSlide({ slide }: { slide: Slide }) {
             <div className={`animate-in rounded-3xl ${a.bg} border ${a.border} p-10 md:p-16 space-y-6 shadow-2xl relative overflow-hidden`}>
                 <div className={`absolute inset-0 bg-gradient-to-br ${a.gradient} opacity-5`}></div>
                 <div className="relative z-10 space-y-6">
-                    <p className={`text-lg font-bold ${a.text} uppercase tracking-widest`}>{labels[slide.calloutType] || "✨ Note"}</p>
+                    <p className={`text-lg font-bold ${a.text} uppercase tracking-widest`}>{(slide.calloutType && labels[slide.calloutType]) || "✨ Note"}</p>
                     <p className="text-2xl md:text-4xl font-medium text-white leading-relaxed">{slide.message}</p>
                 </div>
             </div>
