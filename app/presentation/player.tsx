@@ -43,18 +43,72 @@ function TitleSlide({ slide }: { slide: Slide }) {
 
 function ContentSlide({ slide }: { slide: Slide }) {
     const a = getAccent(slide.accent);
+    const layout = slide.layout || "default";
+    const bullets = slide.bullets || [];
+
+    if (layout === "cards") {
+        return (
+            <div className="z-10 w-full max-w-5xl space-y-8">
+                <h2 className="animate-in text-3xl md:text-5xl font-bold text-center" style={SF}>{slide.title}</h2>
+                <div className="animate-in grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {bullets.map((b: string, i: number) => (
+                        <div key={i} className={`rounded-2xl ${a.bg} border ${a.border} p-6`}>
+                            <span className="text-xl font-semibold text-white">{b}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+    if (layout === "numbered") {
+        return (
+            <div className="z-10 w-full max-w-5xl">
+                <div className="flex items-stretch gap-8">
+                    <div className={`animate-in w-1.5 rounded-full bg-gradient-to-b ${a.gradient} flex-shrink-0`}></div>
+                    <div className="space-y-6">
+                        <h2 className="animate-in text-3xl md:text-5xl font-bold leading-tight" style={SF}>{slide.title}</h2>
+                        {bullets.map((b: string, i: number) => (
+                            <div key={i} className="animate-in flex items-start gap-5 text-lg md:text-2xl text-gray-300">
+                                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${a.gradient} flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-lg ${a.glow}`}>{i + 1}</div>
+                                <span>{b}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+    if (layout === "icon-list") {
+        const icons = ["◆", "●", "★", "◇", "▲"];
+        return (
+            <div className="z-10 w-full max-w-5xl">
+                <div className="flex items-stretch gap-8">
+                    <div className={`animate-in w-1.5 rounded-full bg-gradient-to-b ${a.gradient} flex-shrink-0`}></div>
+                    <div className="space-y-6">
+                        <h2 className="animate-in text-3xl md:text-5xl font-bold leading-tight" style={SF}>{slide.title}</h2>
+                        {bullets.map((b: string, i: number) => (
+                            <div key={i} className="animate-in flex items-start gap-5 text-lg md:text-2xl text-gray-300">
+                                <span className={`text-2xl ${a.text} flex-shrink-0`}>{icons[i % icons.length]}</span>
+                                <span>{b}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    }
     return (
         <div className="z-10 w-full max-w-5xl">
             <div className="flex items-stretch gap-8">
                 <div className={`animate-in w-1.5 rounded-full bg-gradient-to-b ${a.gradient} flex-shrink-0`}></div>
                 <div className="space-y-8">
                     <h2 className="animate-in text-3xl md:text-5xl font-bold leading-tight" style={SF}>{slide.title}</h2>
-                    {slide.bullets && <ul className="space-y-4">{slide.bullets.map((b: string, i: number) => (
+                    {bullets.length > 0 && <ul className="space-y-4">{bullets.map((b: string, i: number) => (
                         <li key={i} className="animate-in flex items-start gap-4 text-lg md:text-2xl text-gray-300">
                             <span className={`mt-2 w-2.5 h-2.5 rounded-full bg-gradient-to-r ${a.gradient} flex-shrink-0 shadow-lg ${a.glow}`}></span><span>{b}</span>
                         </li>
                     ))}</ul>}
-                    {slide.content && !slide.bullets && <p className="animate-in text-xl md:text-3xl text-gray-300 leading-relaxed">{slide.content}</p>}
+                    {slide.content && !bullets.length && <p className="animate-in text-xl md:text-3xl text-gray-300 leading-relaxed">{slide.content}</p>}
                 </div>
             </div>
         </div>
@@ -63,36 +117,100 @@ function ContentSlide({ slide }: { slide: Slide }) {
 
 function ComparisonSlide({ slide }: { slide: Slide }) {
     const a = getAccent(slide.accent);
+    const layout = slide.layout || "side-by-side";
+    const ColA = () => (
+        <div className={`animate-in rounded-2xl ${a.bg} border ${a.border} p-8 space-y-5`}>
+            <h3 className={`text-2xl font-bold ${a.text}`}>{slide.labelA || "A"}</h3>
+            <ul className="space-y-3">{(slide.bulletsA || []).map((b: string, i: number) => (<li key={i} className="animate-in flex items-start gap-3 text-lg text-gray-300"><CheckCircle className={`w-5 h-5 mt-0.5 ${a.text} flex-shrink-0`} /><span>{b}</span></li>))}</ul>
+        </div>
+    );
+    const ColB = () => (
+        <div className="animate-in rounded-2xl bg-white/5 border border-white/10 p-8 space-y-5">
+            <h3 className="text-2xl font-bold text-gray-300">{slide.labelB || "B"}</h3>
+            <ul className="space-y-3">{(slide.bulletsB || []).map((b: string, i: number) => (<li key={i} className="animate-in flex items-start gap-3 text-lg text-gray-300"><CheckCircle className="w-5 h-5 mt-0.5 text-gray-500 flex-shrink-0" /><span>{b}</span></li>))}</ul>
+        </div>
+    );
+    if (layout === "stacked") {
+        return (
+            <div className="z-10 w-full max-w-4xl space-y-8">
+                <h2 className="animate-in text-3xl md:text-5xl font-bold text-center" style={SF}>{slide.title}</h2>
+                <div className="flex flex-col gap-6"><ColA /><ColB /></div>
+            </div>
+        );
+    }
+    if (layout === "versus") {
+        return (
+            <div className="z-10 w-full max-w-6xl space-y-8">
+                <h2 className="animate-in text-3xl md:text-5xl font-bold text-center" style={SF}>{slide.title}</h2>
+                <div className="flex items-center justify-center gap-8">
+                    <ColA />
+                    <span className="text-3xl font-black text-white/30">VS</span>
+                    <ColB />
+                </div>
+            </div>
+        );
+    }
     return (
         <div className="z-10 w-full max-w-6xl space-y-8">
             <h2 className="animate-in text-3xl md:text-5xl font-bold text-center" style={SF}>{slide.title}</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className={`animate-in rounded-2xl ${a.bg} border ${a.border} p-8 space-y-5`}>
-                    <h3 className={`text-2xl font-bold ${a.text}`}>{slide.labelA || "A"}</h3>
-                    <ul className="space-y-3">{(slide.bulletsA || []).map((b: string, i: number) => (<li key={i} className="animate-in flex items-start gap-3 text-lg text-gray-300"><CheckCircle className={`w-5 h-5 mt-0.5 ${a.text} flex-shrink-0`} /><span>{b}</span></li>))}</ul>
-                </div>
-                <div className="animate-in rounded-2xl bg-white/5 border border-white/10 p-8 space-y-5">
-                    <h3 className="text-2xl font-bold text-gray-300">{slide.labelB || "B"}</h3>
-                    <ul className="space-y-3">{(slide.bulletsB || []).map((b: string, i: number) => (<li key={i} className="animate-in flex items-start gap-3 text-lg text-gray-300"><CheckCircle className="w-5 h-5 mt-0.5 text-gray-500 flex-shrink-0" /><span>{b}</span></li>))}</ul>
-                </div>
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6"><ColA /><ColB /></div>
         </div>
     );
 }
 
 function TimelineSlide({ slide }: { slide: Slide }) {
     const a = getAccent(slide.accent);
+    const layout = slide.layout || "vertical";
+    const steps = slide.steps || [];
+    const StepItem = ({ s, i }: { s: any; i: number }) => (
+        <div className="animate-in flex items-start gap-6">
+            <div className="flex flex-col items-center flex-shrink-0">
+                <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${a.gradient} flex items-center justify-center text-white font-bold text-lg shadow-xl ${a.glow}`}>{i + 1}</div>
+                {layout === "vertical" && i < steps.length - 1 && <div className={`w-0.5 h-16 bg-gradient-to-b ${a.gradient} opacity-30`}></div>}
+            </div>
+            <div className="pt-2 pb-6"><h3 className="text-xl md:text-2xl font-bold text-white">{typeof s === "string" ? s : s.step}</h3>{s.detail && <p className="text-gray-400 text-lg mt-1">{s.detail}</p>}</div>
+        </div>
+    );
+    if (layout === "horizontal") {
+        return (
+            <div className="z-10 w-full max-w-6xl space-y-8">
+                <h2 className="animate-in text-3xl md:text-5xl font-bold text-center" style={SF}>{slide.title}</h2>
+                <div className="flex flex-wrap justify-center items-start gap-2">
+                    {steps.map((s: any, i: number) => (
+                        <div key={i} className="contents">
+                            <div className="flex items-center gap-2">
+                                <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${a.gradient} flex items-center justify-center text-white font-bold text-lg shadow-xl ${a.glow} flex-shrink-0`}>{i + 1}</div>
+                                <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3 max-w-[200px]">
+                                    <p className="text-white font-medium">{typeof s === "string" ? s : s.step}</p>
+                                    {s.detail && <p className="text-gray-400 text-sm mt-1">{s.detail}</p>}
+                                </div>
+                            </div>
+                            {i < steps.length - 1 && <span className="text-gray-600 text-2xl self-center">→</span>}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+    if (layout === "zigzag") {
+        return (
+            <div className="z-10 w-full max-w-5xl space-y-8">
+                <h2 className="animate-in text-3xl md:text-5xl font-bold text-center" style={SF}>{slide.title}</h2>
+                <div className="space-y-4">
+                    {steps.map((s: any, i: number) => (
+                        <div key={i} className={i % 2 === 0 ? "ml-0 mr-16" : "ml-16 mr-0"}>
+                            <StepItem s={s} i={i} />
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
     return (
         <div className="z-10 w-full max-w-5xl space-y-8">
             <h2 className="animate-in text-3xl md:text-5xl font-bold text-center" style={SF}>{slide.title}</h2>
-            <div className="space-y-1">{(slide.steps || []).map((s: any, i: number) => (
-                <div key={i} className="animate-in flex items-start gap-6">
-                    <div className="flex flex-col items-center flex-shrink-0">
-                        <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${a.gradient} flex items-center justify-center text-white font-bold text-lg shadow-xl ${a.glow}`}>{i + 1}</div>
-                        {i < (slide.steps || []).length - 1 && <div className={`w-0.5 h-16 bg-gradient-to-b ${a.gradient} opacity-30`}></div>}
-                    </div>
-                    <div className="pt-2 pb-6"><h3 className="text-xl md:text-2xl font-bold text-white">{typeof s === "string" ? s : s.step}</h3>{s.detail && <p className="text-gray-400 text-lg mt-1">{s.detail}</p>}</div>
-                </div>
+            <div className="space-y-1">{steps.map((s: any, i: number) => (
+                <div key={i}><StepItem s={s} i={i} /></div>
             ))}</div>
         </div>
     );
@@ -379,6 +497,143 @@ function HighlightSlide({ slide }: { slide: Slide }) {
     );
 }
 
+/* ─── Chart slides ─── */
+const CHART_COLORS = ["#a855f7", "#3b82f6", "#10b981", "#f59e0b", "#ec4899", "#06b6d4"];
+
+function BarChartSlide({ slide }: { slide: Slide }) {
+    const a = getAccent(slide.accent);
+    const data = slide.data || [];
+    const maxVal = Math.max(...data.map((d) => d.value), 1);
+    return (
+        <div className="z-10 w-full max-w-5xl space-y-8">
+            <h2 className="animate-in text-3xl md:text-5xl font-bold text-center" style={SF}>{slide.title}</h2>
+            <div className="animate-in flex items-end justify-center gap-8 h-64">
+                {data.map((d: { label: string; value: number }, i: number) => {
+                    const h = (d.value / maxVal) * 180;
+                    return (
+                        <div key={i} className="flex flex-col items-center gap-2">
+                            <div className="w-16 h-48 flex items-end justify-center">
+                                <div className={`w-12 rounded-t-lg bg-gradient-to-t ${a.gradient} shadow-xl ${a.glow}`} style={{ height: `${h}px` }} />
+                            </div>
+                            <span className="text-sm text-gray-400 text-center max-w-20">{d.label}</span>
+                            <span className={`text-lg font-bold ${a.text}`}>{d.value}{slide.unit ? ` ${slide.unit}` : ""}</span>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+function PieChartSlide({ slide }: { slide: Slide }) {
+    const a = getAccent(slide.accent);
+    const data = slide.data || [];
+    const total = data.reduce((s, d) => s + d.value, 0) || 1;
+    const r = 100;
+    const cx = 120;
+    const cy = 100;
+    let offset = 0;
+    return (
+        <div className="z-10 w-full max-w-5xl flex flex-col md:flex-row items-center gap-12">
+            <div className="flex-1 space-y-4">
+                <h2 className="animate-in text-3xl md:text-5xl font-bold" style={SF}>{slide.title}</h2>
+                <div className="space-y-3">
+                    {data.map((d: { label: string; value: number; color?: string }, i: number) => {
+                        const pct = ((d.value / total) * 100).toFixed(0);
+                        const c = d.color || CHART_COLORS[i % CHART_COLORS.length];
+                        return (
+                            <div key={i} className="animate-in flex items-center gap-3">
+                                <div className="w-4 h-4 rounded" style={{ background: c }} />
+                                <span className="text-lg text-gray-300">{d.label}: {pct}%</span>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+            <div className="animate-in flex-1 flex justify-center">
+                <svg width={240} height={200} viewBox="0 0 240 200">
+                    {data.map((d: { label: string; value: number; color?: string }, i: number) => {
+                        const pct = d.value / total;
+                        const dashLen = 2 * Math.PI * r * pct;
+                        const dashOffset = 2 * Math.PI * r - offset;
+                        offset += 2 * Math.PI * r * pct;
+                        const c = d.color || CHART_COLORS[i % CHART_COLORS.length];
+                        return (
+                            <circle key={i} cx={cx} cy={cy} r={r} fill="none" stroke={c} strokeWidth={36} strokeDasharray={2 * Math.PI * r} strokeDashoffset={dashOffset} transform={`rotate(-90 ${cx} ${cy})`} />
+                        );
+                    })}
+                    <circle cx={cx} cy={cy} r={r - 28} fill="#000" />
+                </svg>
+            </div>
+        </div>
+    );
+}
+
+function ProgressSlide({ slide }: { slide: Slide }) {
+    const a = getAccent(slide.accent);
+    const items = (slide.items || []).filter((i: any) => i.label != null);
+    return (
+        <div className="z-10 w-full max-w-2xl space-y-8">
+            <h2 className="animate-in text-3xl md:text-5xl font-bold text-center" style={SF}>{slide.title}</h2>
+            <div className="space-y-6">
+                {items.map((item: any, i: number) => {
+                    const max = item.max ?? 100;
+                    const val = item.value ?? 0;
+                    const pct = Math.min(100, (val / max) * 100);
+                    return (
+                        <div key={i} className="animate-in">
+                            <div className="flex justify-between mb-2">
+                                <span className="text-lg font-semibold text-white">{item.label}</span>
+                                <span className={`text-lg font-semibold ${a.text}`}>{val} / {max}</span>
+                            </div>
+                            <div className="h-3 bg-white/10 rounded-full overflow-hidden">
+                                <div className={`h-full rounded-full bg-gradient-to-r ${a.gradient} transition-all duration-1000`} style={{ width: `${pct}%` }} />
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+function BigNumberGridSlide({ slide }: { slide: Slide }) {
+    const a = getAccent(slide.accent);
+    const stats = slide.stats || [];
+    return (
+        <div className="z-10 w-full max-w-5xl space-y-8">
+            <h2 className="animate-in text-3xl md:text-5xl font-bold text-center" style={SF}>{slide.title}</h2>
+            <div className="animate-in grid grid-cols-2 md:grid-cols-4 gap-6">
+                {stats.map((s: { number: string; label: string }, i: number) => (
+                    <div key={i} className={`rounded-2xl ${a.bg} border ${a.border} p-8 text-center`}>
+                        <p className={`text-5xl md:text-6xl font-black bg-clip-text text-transparent bg-gradient-to-r ${a.gradient}`} style={SF}>{s.number}</p>
+                        <p className="text-lg text-gray-400 mt-2 font-semibold">{s.label}</p>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function IconGridSlide({ slide }: { slide: Slide }) {
+    const a = getAccent(slide.accent);
+    const items = (slide.items || []).filter((i: any) => i.label != null);
+    return (
+        <div className="z-10 w-full max-w-5xl space-y-8">
+            <h2 className="animate-in text-3xl md:text-5xl font-bold text-center" style={SF}>{slide.title}</h2>
+            <div className="animate-in grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {items.map((item: any, i: number) => (
+                    <div key={i} className={`rounded-2xl ${a.bg} border ${a.border} p-6`}>
+                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${a.gradient} flex items-center justify-center text-2xl mb-4 shadow-lg ${a.glow}`}>{item.icon || "◆"}</div>
+                        <h4 className="text-xl font-bold text-white mb-2">{item.label}</h4>
+                        {item.description && <p className="text-gray-400 text-base">{item.description}</p>}
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
 /* ─── GENERIC FALLBACK for AI-invented types ─── */
 function GenericSlide({ slide }: { slide: Slide }) {
     const a = getAccent(slide.accent);
@@ -408,6 +663,8 @@ function renderSlide(slide: Slide) {
         callout: CalloutSlide, summary: SummarySlide, code: CodeSlide, definition: DefinitionSlide,
         pros_cons: ProsConsSlide, equation: EquationSlide, mindmap: MindmapSlide, table: TableSlide,
         example: ExampleSlide, funfact: FunfactSlide, steps: StepsSlide, highlight: HighlightSlide,
+        bar_chart: BarChartSlide, pie_chart: PieChartSlide, progress: ProgressSlide,
+        big_number_grid: BigNumberGridSlide, icon_grid: IconGridSlide,
     };
     const Component = map[slide.type] || GenericSlide;
     return <Component slide={slide} />;
@@ -428,9 +685,6 @@ export default function PresentationPlayer({ slides }: { slides: Slide[] }) {
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const autoPlayTimer = useRef<NodeJS.Timeout | null>(null);
 
-    // TTS Audio reference
-    const ttsAudioRef = useRef<HTMLAudioElement | null>(null);
-
     // Get settings store directly in component since it's a client component
     const presentationSettings = useSettingsStore((state) => state.presentation);
     const enableVoice = presentationSettings?.enableVoice || false;
@@ -445,9 +699,8 @@ export default function PresentationPlayer({ slides }: { slides: Slide[] }) {
         return () => {
             audio.pause();
             audio.src = "";
-            if (ttsAudioRef.current) {
-                ttsAudioRef.current.pause();
-                ttsAudioRef.current.src = "";
+            if (typeof window !== "undefined" && window.speechSynthesis) {
+                window.speechSynthesis.cancel();
             }
         };
     }, []);
@@ -460,16 +713,13 @@ export default function PresentationPlayer({ slides }: { slides: Slide[] }) {
         const targetVolume = enableVoice ? volume * 0.3 : volume;
         audioRef.current.volume = isMuted ? 0 : targetVolume;
 
-        if (ttsAudioRef.current) {
-            ttsAudioRef.current.volume = isMuted ? 0 : 1;
-        }
-
         if (isPlaying) {
             audioRef.current.play().catch(() => { });
-            if (ttsAudioRef.current && enableVoice) ttsAudioRef.current.play().catch(() => { });
         } else {
             audioRef.current.pause();
-            if (ttsAudioRef.current) ttsAudioRef.current.pause();
+            if (typeof window !== "undefined" && window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+            }
         }
     }, [isPlaying, isMuted, volume, enableVoice]);
 
@@ -480,16 +730,13 @@ export default function PresentationPlayer({ slides }: { slides: Slide[] }) {
 
     const prevSlide = () => { if (currentSlide > 0) setCurrentSlide(prev => prev - 1); };
 
-    // Handle Text-to-Speech for current slide & Auto-Advance
+    // Handle Text-to-Speech (Web Speech API) for current slide & Auto-Advance
     useEffect(() => {
-        // Clean up previous TTS audio and timers
-        if (ttsAudioRef.current) {
-            ttsAudioRef.current.pause();
-            ttsAudioRef.current.src = "";
-            ttsAudioRef.current = null;
-        }
         if (autoPlayTimer.current) {
             clearTimeout(autoPlayTimer.current);
+        }
+        if (typeof window !== "undefined" && window.speechSynthesis) {
+            window.speechSynthesis.cancel();
         }
 
         if (!isPlaying || !slides || slides.length === 0) return;
@@ -499,14 +746,13 @@ export default function PresentationPlayer({ slides }: { slides: Slide[] }) {
 
         const slideDurationMs = (presentationSettings?.slideDuration || 5) * 1000;
 
-        if (!enableVoice) {
+        if (!enableVoice || isMuted) {
             autoPlayTimer.current = setTimeout(nextSlide, slideDurationMs);
             return;
         }
 
         // Build text to read based on slide type
         let textToRead = "";
-
         if (slide.title) textToRead += slide.title + ". ";
         if (slide.subtitle) textToRead += slide.subtitle + ". ";
         if (slide.content) textToRead += slide.content + ". ";
@@ -515,59 +761,37 @@ export default function PresentationPlayer({ slides }: { slides: Slide[] }) {
         if (slide.definition) textToRead += slide.definition + ". ";
         if (slide.explanation) textToRead += slide.explanation + ". ";
         if (slide.fact) textToRead += slide.fact + ". ";
+        if (slide.message) textToRead += slide.message + ". ";
+        if (slide.highlight) textToRead += slide.highlight + ". ";
+        if (slide.keyPoints) textToRead += slide.keyPoints.join(". ") + ". ";
+        if (slide.stats) textToRead += slide.stats.map((s: { number: string; label: string }) => `${s.number} ${s.label}`).join(". ") + ". ";
+        if (slide.data) textToRead += slide.data.map((d: { label: string; value: number }) => `${d.label}: ${d.value}`).join(". ") + ". ";
 
         if (!textToRead.trim()) {
             autoPlayTimer.current = setTimeout(nextSlide, slideDurationMs);
             return;
         }
 
-        // Fetch TTS audio and play it, advancing slide ON ENDED
         let isActive = true;
-        const fetchTTS = async () => {
-            try {
-                const res = await fetch("/api/tts", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ text: textToRead, voice: "alloy" })
-                });
-
-                if (!res.ok || !isActive) throw new Error("TTS failed or aborted");
-
-                const blob = await res.blob();
-                const url = URL.createObjectURL(blob);
-
-                const audio = new Audio(url);
-                // Check mute state from out of scope (might be slightly stale if changed during fetch, but handled by effect above later)
-                // However, assigning it to ref ensures the effect above manages it going forward.
-
-                audio.onended = () => {
-                    URL.revokeObjectURL(url);
-                    if (isActive) nextSlide();
-                };
-
-                ttsAudioRef.current = audio;
-
-                // Only start playing if we are still in "isPlaying" state when fetch returns
-                if (isActive) {
-                    audio.play().catch(console.error);
-                }
-            } catch (error) {
-                console.error("Failed to fetch TTS:", error);
-                if (isActive) autoPlayTimer.current = setTimeout(nextSlide, slideDurationMs);
-            }
+        const utterance = new SpeechSynthesisUtterance(textToRead.trim());
+        utterance.rate = 0.95;
+        utterance.pitch = 1;
+        utterance.volume = 1;
+        utterance.onend = () => {
+            if (isActive) nextSlide();
+        };
+        utterance.onerror = () => {
+            if (isActive) autoPlayTimer.current = setTimeout(nextSlide, slideDurationMs);
         };
 
-        fetchTTS();
+        window.speechSynthesis.speak(utterance);
 
         return () => {
             isActive = false;
-            if (ttsAudioRef.current) {
-                ttsAudioRef.current.pause();
-                ttsAudioRef.current.src = "";
-            }
+            window.speechSynthesis.cancel();
             if (autoPlayTimer.current) clearTimeout(autoPlayTimer.current);
         };
-    }, [currentSlide, isPlaying, enableVoice, nextSlide]);
+    }, [currentSlide, isPlaying, enableVoice, isMuted, nextSlide, slides, presentationSettings?.slideDuration]);
 
     const handleExport = async () => {
         if (!slides || slides.length === 0) return;

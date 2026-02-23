@@ -36,13 +36,77 @@ export const TitleSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
 export const ContentSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
     const frame = useCurrentFrame();
     const color = getColor(slide.accent);
+    const layout = slide.layout || "default";
+    const bullets = slide.bullets || [];
+
+    if (layout === "cards") {
+        return (
+            <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", padding: "80px 120px" }}>
+                <h2 style={{ fontSize: 56, fontWeight: 700, color: "#fff", marginBottom: 50, opacity: interpolate(frame, [0, 15], [0, 1], ec), fontFamily: "'Space Grotesk', sans-serif" }}>{slide.title}</h2>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24, width: "100%" }}>
+                    {bullets.map((b: string, i: number) => {
+                        const d = 12 + i * 8;
+                        return (
+                            <div key={i} style={{ background: `${color}15`, border: `1px solid ${color}40`, borderRadius: 20, padding: 28, opacity: interpolate(frame, [d, d + 10], [0, 1], ec) }}>
+                                <span style={{ fontSize: 24, color: "#fff", fontWeight: 600 }}>{b}</span>
+                            </div>
+                        );
+                    })}
+                </div>
+            </AbsoluteFill>
+        );
+    }
+    if (layout === "numbered") {
+        return (
+            <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", alignItems: "center", padding: "80px 120px" }}>
+                <div style={{ display: "flex", gap: 32 }}>
+                    <div style={{ width: 6, borderRadius: 999, background: `linear-gradient(to bottom, ${color}, transparent)`, flexShrink: 0 }} />
+                    <div>
+                        <h2 style={{ fontSize: 56, fontWeight: 700, color: "#fff", opacity: interpolate(frame, [0, 15], [0, 1], ec), fontFamily: "'Space Grotesk', sans-serif" }}>{slide.title}</h2>
+                        {bullets.map((b: string, i: number) => {
+                            const d = 10 + i * 8;
+                            return (
+                                <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 20, marginTop: 28, opacity: interpolate(frame, [d, d + 12], [0, 1], ec) }}>
+                                    <div style={{ width: 40, height: 40, borderRadius: 12, background: `linear-gradient(135deg, ${color}, ${color}aa)`, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: 18, flexShrink: 0 }}>{i + 1}</div>
+                                    <span style={{ fontSize: 32, color: "#d1d5db" }}>{b}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </AbsoluteFill>
+        );
+    }
+    if (layout === "icon-list") {
+        const icons = ["◆", "●", "★", "◇", "▲"];
+        return (
+            <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", alignItems: "center", padding: "80px 120px" }}>
+                <div style={{ display: "flex", gap: 32 }}>
+                    <div style={{ width: 6, borderRadius: 999, background: `linear-gradient(to bottom, ${color}, transparent)`, flexShrink: 0 }} />
+                    <div>
+                        <h2 style={{ fontSize: 56, fontWeight: 700, color: "#fff", opacity: interpolate(frame, [0, 15], [0, 1], ec), fontFamily: "'Space Grotesk', sans-serif" }}>{slide.title}</h2>
+                        {bullets.map((b: string, i: number) => {
+                            const d = 10 + i * 8;
+                            return (
+                                <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 20, marginTop: 28, opacity: interpolate(frame, [d, d + 12], [0, 1], ec) }}>
+                                    <span style={{ fontSize: 28, color, flexShrink: 0 }}>{icons[i % icons.length]}</span>
+                                    <span style={{ fontSize: 32, color: "#d1d5db" }}>{b}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </AbsoluteFill>
+        );
+    }
+    // default
     return (
         <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", alignItems: "center", padding: "80px 120px" }}>
             <div style={{ display: "flex", gap: 32 }}>
                 <div style={{ width: 6, borderRadius: 999, background: `linear-gradient(to bottom, ${color}, transparent)`, flexShrink: 0 }} />
                 <div>
                     <h2 style={{ fontSize: 56, fontWeight: 700, color: "#fff", opacity: interpolate(frame, [0, 15], [0, 1], ec), fontFamily: "'Space Grotesk', sans-serif" }}>{slide.title}</h2>
-                    {(slide.bullets || []).map((b: string, i: number) => {
+                    {bullets.map((b: string, i: number) => {
                         const d = 10 + i * 8;
                         return (<div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 16, marginTop: 28, opacity: interpolate(frame, [d, d + 12], [0, 1], ec), transform: `translateX(${interpolate(frame, [d, d + 12], [30, 0], ec)}px)` }}><div style={{ width: 10, height: 10, borderRadius: 999, background: color, marginTop: 10, flexShrink: 0 }} /><span style={{ fontSize: 32, color: "#d1d5db" }}>{b}</span></div>);
                     })}
@@ -55,18 +119,63 @@ export const ContentSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
 /* ─── Comparison ─── */
 export const ComparisonSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
     const frame = useCurrentFrame(); const color = getColor(slide.accent);
+    const layout = slide.layout || "side-by-side";
+    const bulletsA = slide.bulletsA || [];
+    const bulletsB = slide.bulletsB || [];
+
+    const ColA = () => (
+        <div style={{ flex: 1, background: `${color}20`, border: `1px solid ${color}40`, borderRadius: 24, padding: 40 }}>
+            <h3 style={{ fontSize: 28, fontWeight: 700, color, marginBottom: 20 }}>{slide.labelA || "A"}</h3>
+            {bulletsA.map((b: string, i: number) => (<p key={i} style={{ fontSize: 22, color: "#d1d5db", marginTop: 12, opacity: interpolate(frame, [15 + i * 6, 25 + i * 6], [0, 1], ec) }}>✓ {b}</p>))}
+        </div>
+    );
+    const ColB = () => (
+        <div style={{ flex: 1, background: "#ffffff0d", border: "1px solid #ffffff1a", borderRadius: 24, padding: 40 }}>
+            <h3 style={{ fontSize: 28, fontWeight: 700, color: "#9ca3af", marginBottom: 20 }}>{slide.labelB || "B"}</h3>
+            {bulletsB.map((b: string, i: number) => (<p key={i} style={{ fontSize: 22, color: "#d1d5db", marginTop: 12, opacity: interpolate(frame, [15 + i * 6, 25 + i * 6], [0, 1], ec) }}>✓ {b}</p>))}
+        </div>
+    );
+
+    if (layout === "stacked") {
+        return (
+            <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80 }}>
+                <h2 style={{ fontSize: 52, fontWeight: 700, color: "#fff", marginBottom: 40, opacity: interpolate(frame, [0, 15], [0, 1], ec), fontFamily: "'Space Grotesk', sans-serif" }}>{slide.title}</h2>
+                <div style={{ display: "flex", flexDirection: "column", gap: 24, width: "100%", maxWidth: 1000 }}>
+                    <ColA /><ColB />
+                </div>
+            </AbsoluteFill>
+        );
+    }
+    if (layout === "versus") {
+        return (
+            <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80 }}>
+                <h2 style={{ fontSize: 52, fontWeight: 700, color: "#fff", marginBottom: 40, opacity: interpolate(frame, [0, 15], [0, 1], ec), fontFamily: "'Space Grotesk', sans-serif" }}>{slide.title}</h2>
+                <div style={{ display: "flex", alignItems: "center", gap: 32, width: "100%" }}>
+                    <ColA />
+                    <div style={{ fontSize: 32, fontWeight: 900, color: "#ffffff30" }}>VS</div>
+                    <ColB />
+                </div>
+            </AbsoluteFill>
+        );
+    }
+    if (layout === "versus") {
+        return (
+            <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80 }}>
+                <h2 style={{ fontSize: 52, fontWeight: 700, color: "#fff", marginBottom: 40, opacity: interpolate(frame, [0, 15], [0, 1], ec), fontFamily: "'Space Grotesk', sans-serif" }}>{slide.title}</h2>
+                <div style={{ display: "flex", alignItems: "center", gap: 32, width: "100%" }}>
+                    <ColA />
+                    <div style={{ fontSize: 32, fontWeight: 900, color: "#ffffff30" }}>VS</div>
+                    <ColB />
+                </div>
+            </AbsoluteFill>
+        );
+    }
+    // side-by-side (default)
     return (
         <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80 }}>
             <h2 style={{ fontSize: 52, fontWeight: 700, color: "#fff", marginBottom: 40, opacity: interpolate(frame, [0, 15], [0, 1], ec), fontFamily: "'Space Grotesk', sans-serif" }}>{slide.title}</h2>
             <div style={{ display: "flex", gap: 24, width: "100%" }}>
-                <div style={{ flex: 1, background: `${color}20`, border: `1px solid ${color}40`, borderRadius: 24, padding: 40 }}>
-                    <h3 style={{ fontSize: 28, fontWeight: 700, color, marginBottom: 20 }}>{slide.labelA || "A"}</h3>
-                    {(slide.bulletsA || []).map((b: string, i: number) => (<p key={i} style={{ fontSize: 22, color: "#d1d5db", marginTop: 12, opacity: interpolate(frame, [15 + i * 6, 25 + i * 6], [0, 1], ec) }}>✓ {b}</p>))}
-                </div>
-                <div style={{ flex: 1, background: "#ffffff0d", border: "1px solid #ffffff1a", borderRadius: 24, padding: 40 }}>
-                    <h3 style={{ fontSize: 28, fontWeight: 700, color: "#9ca3af", marginBottom: 20 }}>{slide.labelB || "B"}</h3>
-                    {(slide.bulletsB || []).map((b: string, i: number) => (<p key={i} style={{ fontSize: 22, color: "#d1d5db", marginTop: 12, opacity: interpolate(frame, [15 + i * 6, 25 + i * 6], [0, 1], ec) }}>✓ {b}</p>))}
-                </div>
+                <ColA /><ColB />
             </div>
         </AbsoluteFill>
     );
@@ -75,17 +184,55 @@ export const ComparisonSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
 /* ─── Timeline ─── */
 export const TimelineSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
     const frame = useCurrentFrame(); const color = getColor(slide.accent);
+    const layout = slide.layout || "vertical";
+    const steps = slide.steps || [];
+
+    const StepItem: React.FC<{ s: any; i: number }> = ({ s, i }) => {
+        const d = 10 + i * 12;
+        return (
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 24, opacity: interpolate(frame, [d, d + 10], [0, 1], ec) }}>
+                <div style={{ width: 48, height: 48, borderRadius: 999, background: `linear-gradient(135deg, ${color}, ${color}aa)`, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: 20, flexShrink: 0 }}>{i + 1}</div>
+                <div style={{ paddingTop: 8 }}><p style={{ fontSize: 26, fontWeight: 700, color: "#fff" }}>{typeof s === "string" ? s : s.step}</p>{s.detail && <p style={{ fontSize: 20, color: "#9ca3af", marginTop: 4 }}>{s.detail}</p>}</div>
+            </div>
+        );
+    };
+
+    if (layout === "horizontal") {
+        return (
+            <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80 }}>
+                <h2 style={{ fontSize: 52, fontWeight: 700, color: "#fff", marginBottom: 50, opacity: interpolate(frame, [0, 15], [0, 1], ec), fontFamily: "'Space Grotesk', sans-serif" }}>{slide.title}</h2>
+                <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", justifyContent: "center" }}>
+                    {steps.map((s: any, i: number) => (
+                        <React.Fragment key={i}>
+                            <StepItem s={s} i={i} />
+                            {i < steps.length - 1 && <span style={{ color: "#ffffff30", fontSize: 24 }}>→</span>}
+                        </React.Fragment>
+                    ))}
+                </div>
+            </AbsoluteFill>
+        );
+    }
+    if (layout === "zigzag") {
+        return (
+            <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80 }}>
+                <h2 style={{ fontSize: 52, fontWeight: 700, color: "#fff", marginBottom: 50, opacity: interpolate(frame, [0, 15], [0, 1], ec), fontFamily: "'Space Grotesk', sans-serif" }}>{slide.title}</h2>
+                <div style={{ display: "flex", flexDirection: "column", gap: 20, width: "100%", maxWidth: 900 }}>
+                    {steps.map((s: any, i: number) => (
+                        <div key={i} style={{ alignSelf: i % 2 === 0 ? "flex-start" : "flex-end", marginLeft: i % 2 === 0 ? 0 : 80, marginRight: i % 2 === 0 ? 80 : 0 }}>
+                            <StepItem s={s} i={i} />
+                        </div>
+                    ))}
+                </div>
+            </AbsoluteFill>
+        );
+    }
+    // vertical (default)
     return (
         <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80 }}>
             <h2 style={{ fontSize: 52, fontWeight: 700, color: "#fff", marginBottom: 50, opacity: interpolate(frame, [0, 15], [0, 1], ec), fontFamily: "'Space Grotesk', sans-serif" }}>{slide.title}</h2>
-            {(slide.steps || []).map((s: any, i: number) => {
-                const d = 10 + i * 12; return (
-                    <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 24, marginBottom: 20, opacity: interpolate(frame, [d, d + 10], [0, 1], ec) }}>
-                        <div style={{ width: 48, height: 48, borderRadius: 999, background: `linear-gradient(135deg, ${color}, ${color}aa)`, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: 20, flexShrink: 0 }}>{i + 1}</div>
-                        <div style={{ paddingTop: 8 }}><p style={{ fontSize: 26, fontWeight: 700, color: "#fff" }}>{typeof s === "string" ? s : s.step}</p>{s.detail && <p style={{ fontSize: 20, color: "#9ca3af", marginTop: 4 }}>{s.detail}</p>}</div>
-                    </div>
-                );
-            })}
+            {steps.map((s: any, i: number) => (
+                <div key={i} style={{ marginBottom: 20 }}><StepItem s={s} i={i} /></div>
+            ))}
         </AbsoluteFill>
     );
 };
@@ -359,6 +506,167 @@ export const HighlightSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
             {slide.title && <p style={{ fontSize: 22, color: "#9ca3af", textTransform: "uppercase", letterSpacing: 4, marginBottom: 20, opacity: interpolate(frame, [0, 10], [0, 1], ec) }}>{slide.title}</p>}
             <h1 style={{ fontSize: 120, fontWeight: 900, background: `linear-gradient(90deg, ${color}, ${color}cc)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", lineHeight: 1.1, opacity: interpolate(frame, [5, 20], [0, 1], ec), fontFamily: "'Space Grotesk', sans-serif" }}>{slide.highlight}</h1>
             {slide.subtext && <p style={{ fontSize: 26, color: "#9ca3af", marginTop: 30, maxWidth: 600, opacity: interpolate(frame, [15, 25], [0, 1], ec) }}>{slide.subtext}</p>}
+        </AbsoluteFill>
+    );
+};
+
+/* ─── Bar Chart ─── */
+export const BarChartSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
+    const frame = useCurrentFrame();
+    const color = getColor(slide.accent);
+    const data = slide.data || [];
+    const maxVal = Math.max(...data.map((d) => d.value), 1);
+    return (
+        <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80 }}>
+            <h2 style={{ fontSize: 52, fontWeight: 700, color: "#fff", marginBottom: 50, opacity: interpolate(frame, [0, 15], [0, 1], ec), fontFamily: "'Space Grotesk', sans-serif" }}>{slide.title}</h2>
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 24, height: 280 }}>
+                {data.map((d: { label: string; value: number }, i: number) => {
+                    const dly = 15 + i * 10;
+                    const h = (d.value / maxVal) * 200;
+                    const animH = interpolate(frame, [dly, dly + 15], [0, h], ec);
+                    return (
+                        <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+                            <div style={{ width: 60, height: 220, display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+                                <div style={{ width: 48, height: animH, background: `linear-gradient(to top, ${color}80, ${color})`, borderRadius: "8px 8px 0 0", boxShadow: `0 4px 20px ${color}40` }} />
+                            </div>
+                            <span style={{ fontSize: 16, color: "#9ca3af", textAlign: "center", maxWidth: 80 }}>{d.label}</span>
+                            <span style={{ fontSize: 18, fontWeight: 700, color }}>{d.value}{slide.unit ? ` ${slide.unit}` : ""}</span>
+                        </div>
+                    );
+                })}
+            </div>
+        </AbsoluteFill>
+    );
+};
+
+/* ─── Pie Chart ─── */
+const PIE_COLORS = ["#a855f7", "#3b82f6", "#10b981", "#f59e0b", "#ec4899", "#06b6d4"];
+export const PieChartSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
+    const frame = useCurrentFrame();
+    const color = getColor(slide.accent);
+    const data = slide.data || [];
+    const total = data.reduce((s, d) => s + d.value, 0) || 1;
+    const r = 120;
+    const cx = 200;
+    const cy = 140;
+    let offset = 0;
+    return (
+        <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", alignItems: "center", justifyContent: "center", padding: 80 }}>
+            <div style={{ display: "flex", gap: 60, width: "100%", alignItems: "center" }}>
+                <div style={{ flex: 1, opacity: interpolate(frame, [0, 15], [0, 1], ec) }}>
+                    <h2 style={{ fontSize: 52, fontWeight: 700, color: "#fff", fontFamily: "'Space Grotesk', sans-serif" }}>{slide.title}</h2>
+                    <div style={{ marginTop: 24 }}>
+                        {data.map((d: { label: string; value: number; color?: string }, i: number) => {
+                            const pct = (d.value / total) * 100;
+                            const dly = 15 + i * 8;
+                            const opacity = interpolate(frame, [dly, dly + 10], [0, 1], ec);
+                            const c = d.color || PIE_COLORS[i % PIE_COLORS.length];
+                            return (
+                                <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12, opacity }}>
+                                    <div style={{ width: 16, height: 16, borderRadius: 4, background: c }} />
+                                    <span style={{ fontSize: 20, color: "#d1d5db" }}>{d.label}: {pct.toFixed(0)}%</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+                <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
+                    <svg width={400} height={280} viewBox="0 0 400 280" style={{ opacity: interpolate(frame, [8, 20], [0, 1], ec) }}>
+                        {data.map((d: { label: string; value: number; color?: string }, i: number) => {
+                            const pct = d.value / total;
+                            const dashLen = 2 * Math.PI * r * pct;
+                            const dashOffset = 2 * Math.PI * r - offset;
+                            offset += 2 * Math.PI * r * pct;
+                            const dly = 20 + i * 12;
+                            const animOffset = interpolate(frame, [dly, dly + 20], [2 * Math.PI * r, dashOffset], ec);
+                            const c = d.color || PIE_COLORS[i % PIE_COLORS.length];
+                            return (
+                                <circle key={i} cx={cx} cy={cy} r={r} fill="none" stroke={c} strokeWidth={48} strokeDasharray={2 * Math.PI * r} strokeDashoffset={animOffset} transform={`rotate(-90 ${cx} ${cy})`} style={{ transformOrigin: `${cx}px ${cy}px` }} />
+                            );
+                        })}
+                        <circle cx={cx} cy={cy} r={r - 36} fill="#000" />
+                    </svg>
+                </div>
+            </div>
+        </AbsoluteFill>
+    );
+};
+
+/* ─── Progress ─── */
+export const ProgressSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
+    const frame = useCurrentFrame();
+    const color = getColor(slide.accent);
+    const items = (slide.items || []).filter((i: any) => i.label != null);
+    return (
+        <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80 }}>
+            <h2 style={{ fontSize: 52, fontWeight: 700, color: "#fff", marginBottom: 50, opacity: interpolate(frame, [0, 15], [0, 1], ec), fontFamily: "'Space Grotesk', sans-serif" }}>{slide.title}</h2>
+            <div style={{ width: "100%", maxWidth: 700, display: "flex", flexDirection: "column", gap: 28 }}>
+                {items.map((item: any, i: number) => {
+                    const max = item.max ?? 100;
+                    const val = item.value ?? 0;
+                    const pct = Math.min(100, (val / max) * 100);
+                    const dly = 15 + i * 12;
+                    const animPct = interpolate(frame, [dly, dly + 15], [0, pct], ec);
+                    return (
+                        <div key={i} style={{ opacity: interpolate(frame, [dly - 5, dly], [0, 1], ec) }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                                <span style={{ fontSize: 20, color: "#fff", fontWeight: 600 }}>{item.label}</span>
+                                <span style={{ fontSize: 18, color }}>{val} / {max}</span>
+                            </div>
+                            <div style={{ height: 12, background: "#ffffff15", borderRadius: 999, overflow: "hidden" }}>
+                                <div style={{ width: `${animPct}%`, height: "100%", background: `linear-gradient(90deg, ${color}, ${color}cc)`, borderRadius: 999, transition: "width 0.3s" }} />
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </AbsoluteFill>
+    );
+};
+
+/* ─── Big Number Grid ─── */
+export const BigNumberGridSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
+    const frame = useCurrentFrame();
+    const color = getColor(slide.accent);
+    const stats = slide.stats || [];
+    return (
+        <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80 }}>
+            <h2 style={{ fontSize: 52, fontWeight: 700, color: "#fff", marginBottom: 50, opacity: interpolate(frame, [0, 15], [0, 1], ec), fontFamily: "'Space Grotesk', sans-serif" }}>{slide.title}</h2>
+            <div style={{ display: "grid", gridTemplateColumns: stats.length <= 2 ? "1fr 1fr" : "repeat(auto-fit, minmax(180px, 1fr))", gap: 32, width: "100%", maxWidth: 900 }}>
+                {stats.map((s: { number: string; label: string }, i: number) => {
+                    const dly = 12 + i * 10;
+                    return (
+                        <div key={i} style={{ background: `${color}15`, border: `1px solid ${color}40`, borderRadius: 24, padding: 40, textAlign: "center", opacity: interpolate(frame, [dly, dly + 12], [0, 1], ec) }}>
+                            <p style={{ fontSize: 64, fontWeight: 900, background: `linear-gradient(90deg, ${color}, ${color}cc)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", lineHeight: 1, fontFamily: "'Space Grotesk', sans-serif" }}>{s.number}</p>
+                            <p style={{ fontSize: 20, color: "#9ca3af", marginTop: 12, fontWeight: 600 }}>{s.label}</p>
+                        </div>
+                    );
+                })}
+            </div>
+        </AbsoluteFill>
+    );
+};
+
+/* ─── Icon Grid ─── */
+export const IconGridSlide: React.FC<{ slide: Slide }> = ({ slide }) => {
+    const frame = useCurrentFrame();
+    const color = getColor(slide.accent);
+    const items = (slide.items || []).filter((i: any) => i.label != null);
+    return (
+        <AbsoluteFill style={{ backgroundColor: "#000", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 80 }}>
+            <h2 style={{ fontSize: 52, fontWeight: 700, color: "#fff", marginBottom: 50, opacity: interpolate(frame, [0, 15], [0, 1], ec), fontFamily: "'Space Grotesk', sans-serif" }}>{slide.title}</h2>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 24, width: "100%", maxWidth: 1000 }}>
+                {items.map((item: any, i: number) => {
+                    const dly = 10 + i * 8;
+                    return (
+                        <div key={i} style={{ background: `${color}10`, border: `1px solid ${color}30`, borderRadius: 20, padding: 28, opacity: interpolate(frame, [dly, dly + 10], [0, 1], ec) }}>
+                            <div style={{ width: 48, height: 48, borderRadius: 12, background: `linear-gradient(135deg, ${color}, ${color}aa)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, marginBottom: 16 }}>{item.icon || "◆"}</div>
+                            <h4 style={{ fontSize: 20, fontWeight: 700, color: "#fff", marginBottom: 8 }}>{item.label}</h4>
+                            {item.description && <p style={{ fontSize: 16, color: "#9ca3af", lineHeight: 1.4 }}>{item.description}</p>}
+                        </div>
+                    );
+                })}
+            </div>
         </AbsoluteFill>
     );
 };

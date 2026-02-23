@@ -2,6 +2,7 @@ export interface Slide {
     id: number;
     type: string;
     accent?: string;
+    layout?: string;
     title?: string;
     subtitle?: string;
     content?: string;
@@ -16,7 +17,6 @@ export interface Slide {
     steps?: Array<string | { step?: string; label?: string; detail?: string }>;
     // Statistic
     number?: string;
-    unit?: string;
     description?: string;
     // Quote
     quote?: string;
@@ -24,7 +24,12 @@ export interface Slide {
     // Diagram
     nodes?: Array<string | { label: string }>;
     // List
-    items?: Array<{ term: string; definition: string }>;
+    items?: Array<{ term?: string; definition?: string; icon?: string; label?: string; description?: string; value?: number; max?: number }>;
+    // Charts & stats
+    data?: Array<{ label: string; value: number; color?: string }>;
+    stats?: Array<{ number: string; label: string }>;
+    unit?: string;
+    max?: number;
     // Callout
     calloutType?: "tip" | "warning" | "insight";
     message?: string;

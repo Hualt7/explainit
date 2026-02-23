@@ -6,6 +6,7 @@ import {
     CalloutSlide, SummarySlide, CodeSlide, DefinitionSlide,
     ProsConsSlide, EquationSlide, MindmapSlide, TableSlide,
     ExampleSlide, FunfactSlide, StepsSlide, HighlightSlide,
+    BarChartSlide, PieChartSlide, ProgressSlide, BigNumberGridSlide, IconGridSlide,
     GenericSlide,
 } from "./Slide";
 import type { Slide } from "../types";
@@ -20,6 +21,8 @@ const slideMap: Record<string, React.FC<{ slide: Slide }>> = {
     pros_cons: ProsConsSlide, equation: EquationSlide, mindmap: MindmapSlide,
     table: TableSlide, example: ExampleSlide, funfact: FunfactSlide,
     steps: StepsSlide, highlight: HighlightSlide,
+    bar_chart: BarChartSlide, pie_chart: PieChartSlide, progress: ProgressSlide,
+    big_number_grid: BigNumberGridSlide, icon_grid: IconGridSlide,
 };
 
 const SlideRouter: React.FC<{ slide: Slide }> = ({ slide }) => {

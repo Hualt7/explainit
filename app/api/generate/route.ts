@@ -71,15 +71,17 @@ CRITICAL RULES:
 2. Add examples, analogies, data, and insights that go FAR BEYOND what the user wrote.
 3. Length/Slide Count: Generate ${slideCountRange} Make it thorough and educational.
 4. NEVER use the same slide type twice in a row.
-5. Use a WIDE VARIETY of types — the more visual diversity, the better. Match the visual style requested.
-6. Each slide should have a unique accent color.${excludeLine}${customLine}
+5. You MUST use at least 12 different slide types. Track which types you've used and prioritize unused ones.
+6. Never use the same type more than 3 times total across the entire presentation.
+7. Every 5 slides, you MUST include at least one visual-heavy type (comparison, diagram, mindmap, table, bar_chart, pie_chart, timeline, pros_cons).
+8. Each slide should have a unique accent color.${excludeLine}${customLine}
 
 AVAILABLE SLIDE TYPES (use as many different types as possible):
 
 "title" — Opening splash. Fields: title, subtitle
-"content" — Key point + bullets. Fields: title, bullets[]
-"comparison" — Side-by-side A vs B. Fields: title, labelA, labelB, bulletsA[], bulletsB[]
-"timeline" — Step-by-step process. Fields: title, steps[{step, detail}]
+"content" — Key point + bullets. Fields: title, bullets[], layout?("default"|"cards"|"numbered"|"icon-list")
+"comparison" — Side-by-side A vs B. Fields: title, labelA, labelB, bulletsA[], bulletsB[], layout?("side-by-side"|"stacked"|"versus")
+"timeline" — Step-by-step process. Fields: title, steps[{step, detail}], layout?("vertical"|"horizontal"|"zigzag")
 "statistic" — Big number/data. Fields: title, number, unit, description
 "quote" — Key insight/quote. Fields: title, quote, attribution
 "diagram" — Flowchart. Fields: title, nodes[{label}], description
@@ -96,6 +98,11 @@ AVAILABLE SLIDE TYPES (use as many different types as possible):
 "steps" — Horizontal numbered steps. Fields: title, steps[]
 "highlight" — Single big emphasis word/phrase. Fields: title, highlight, subtext
 "summary" — Closing takeaways. Fields: title, keyPoints[], closingLine
+"bar_chart" — Bar chart with labeled data. Fields: title, data[{label, value}], unit
+"pie_chart" — Pie/donut chart. Fields: title, data[{label, value, color}]
+"progress" — Progress bars. Fields: title, items[{label, value, max}]
+"icon_grid" — Grid of icons with labels (for feature lists). Fields: title, items[{icon, label, description}]
+"big_number_grid" — Multiple stats side by side. Fields: title, stats[{number, label}]
 
 You are NOT limited to these types. If the content calls for a different type, INVENT one — just provide a "type" string and whatever fields make sense. The renderer will handle unknown types gracefully.
 
@@ -113,31 +120,39 @@ Here is the script to transform into a rich, educational, visually diverse prese
 ${script}
 """`;
 
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-                "Content-Type": "application/json",
-                "HTTP-Referer": "https://explainit-seven.vercel.app",
-                "X-Title": "ExplainIt",
-            },
-            body: JSON.stringify({
-                model: "anthropic/claude-opus-4.6",
-                messages: [
-                    { role: "user", content: prompt },
-                ],
-                temperature: 0.75,
-                max_tokens: 8192,
-            }),
-        });
+        const models = ["anthropic/claude-opus-4.6", "google/gemini-3.1-pro-preview"] as const;
+        let data: { choices?: Array<{ message?: { content?: string } }> } | null = null;
+        let lastError: string = "";
 
-        if (!response.ok) {
+        for (const model of models) {
+            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": "https://explainit-seven.vercel.app",
+                    "X-Title": "ExplainIt",
+                },
+                body: JSON.stringify({
+                    model,
+                    messages: [{ role: "user", content: prompt }],
+                    temperature: 0.75,
+                    max_tokens: 8192,
+                }),
+            });
+
+            if (response.ok) {
+                data = await response.json();
+                break;
+            }
             const errorBody = await response.text();
-            console.error("OpenRouter error:", response.status, errorBody);
-            return NextResponse.json({ slides: fallbackParse(script), _fallback: true });
+            lastError = `${model}: ${response.status} ${errorBody}`;
+            console.error("OpenRouter error:", lastError);
         }
 
-        const data = await response.json();
+        if (!data) {
+            return NextResponse.json({ slides: fallbackParse(script), _fallback: true });
+        }
         const responseText = data.choices?.[0]?.message?.content || "";
 
         let slides;
