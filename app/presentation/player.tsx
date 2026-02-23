@@ -5,6 +5,7 @@ import { Play, Pause, SkipBack, SkipForward, ArrowLeft, Download, CheckCircle, A
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { animate, stagger } from "animejs"
+import { useSettingsStore } from "../store/useSettingsStore"
 
 /* ─── Accent color map ─── */
 const accentColors: Record<string, { gradient: string; bg: string; border: string; text: string; glow: string; rgb: string }> = {
@@ -425,25 +426,84 @@ export default function PresentationPlayer({ slides }: { slides: any[] }) {
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const autoPlayTimer = useRef<NodeJS.Timeout | null>(null);
 
-    // Initialize audio
+    // Voice Synth reference
+    const synthRef = useRef<SpeechSynthesis | null>(null);
+
+    // Get settings store directly in component since it's a client component
+    const presentationSettings = useSettingsStore((state: any) => state.presentation);
+    const enableVoice = presentationSettings?.enableVoice || false;
+
+    // Initialize audio and speech synth
     useEffect(() => {
+        if (typeof window !== "undefined" && "speechSynthesis" in window) {
+            synthRef.current = window.speechSynthesis;
+        }
+
         const audio = new Audio(AMBIENT_AUDIO);
         audio.loop = true;
         audio.volume = volume;
         audioRef.current = audio;
-        return () => { audio.pause(); audio.src = ""; };
+        return () => {
+            audio.pause();
+            audio.src = "";
+            if (synthRef.current) synthRef.current.cancel();
+        };
     }, []);
 
-    // Sync audio with play state
+    // Sync ambient audio with play state
     useEffect(() => {
         if (!audioRef.current) return;
-        audioRef.current.volume = isMuted ? 0 : volume;
+
+        // Lower ambient volume if voice is enabled to make speech clearer
+        const targetVolume = enableVoice ? volume * 0.3 : volume;
+        audioRef.current.volume = isMuted ? 0 : targetVolume;
+
         if (isPlaying) {
             audioRef.current.play().catch(() => { });
         } else {
             audioRef.current.pause();
         }
-    }, [isPlaying, isMuted, volume]);
+    }, [isPlaying, isMuted, volume, enableVoice]);
+
+    // Handle Text-to-Speech for current slide
+    useEffect(() => {
+        if (!synthRef.current || !enableVoice || !isPlaying || isMuted || !slides || slides.length === 0) {
+            if (synthRef.current) synthRef.current.cancel();
+            return;
+        }
+
+        // Cancel previous speech
+        synthRef.current.cancel();
+
+        const slide = slides[currentSlide];
+        if (!slide) return;
+
+        // Build text to read based on slide type
+        let textToRead = "";
+
+        if (slide.title) textToRead += slide.title + ". ";
+        if (slide.subtitle) textToRead += slide.subtitle + ". ";
+        if (slide.content) textToRead += slide.content + ". ";
+        if (slide.bullets) textToRead += slide.bullets.join(". ") + ". ";
+        if (slide.quote) textToRead += slide.quote + ". ";
+        if (slide.definition) textToRead += slide.definition + ". ";
+        if (slide.explanation) textToRead += slide.explanation + ". ";
+        if (slide.fact) textToRead += slide.fact + ". ";
+
+        if (textToRead.trim()) {
+            const utterance = new SpeechSynthesisUtterance(textToRead);
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+
+            // Try to use a good English voice
+            const voices = synthRef.current.getVoices();
+            const preferredVoice = voices.find(v => v.name.includes("Google") || v.name.includes("Natural")) || voices[0];
+            if (preferredVoice) utterance.voice = preferredVoice;
+
+            synthRef.current.speak(utterance);
+        }
+
+    }, [currentSlide, isPlaying, enableVoice, isMuted, slides]);
 
     const handleExport = async () => {
         if (!slides || slides.length === 0) return;

@@ -25,6 +25,7 @@ import {
     Quote,
     Lightbulb,
     BarChart3,
+    Volume2,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -39,6 +40,7 @@ const toneOptions: { value: AISettings["tone"]; label: string; icon: React.React
 ];
 
 const slideCountOptions: { value: AISettings["slideCount"]; label: string; range: string }[] = [
+    { value: "auto", label: "Auto", range: "Unlimited slides" },
     { value: "short", label: "Short", range: "6–8 slides" },
     { value: "medium", label: "Medium", range: "12–15 slides" },
     { value: "long", label: "Long", range: "16–20 slides" },
@@ -167,8 +169,8 @@ export default function SettingsPage() {
                                         key={opt.value}
                                         onClick={() => { setAI({ tone: opt.value }); showSaved(); }}
                                         className={`flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${ai.tone === opt.value
-                                                ? "bg-purple-500/20 border-purple-500/50 text-white"
-                                                : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
+                                            ? "bg-purple-500/20 border-purple-500/50 text-white"
+                                            : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
                                             }`}
                                     >
                                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${ai.tone === opt.value ? "bg-purple-500/30" : "bg-white/5"
@@ -193,8 +195,8 @@ export default function SettingsPage() {
                                         key={opt.value}
                                         onClick={() => { setAI({ slideCount: opt.value }); showSaved(); }}
                                         className={`p-4 rounded-xl border text-center transition-all ${ai.slideCount === opt.value
-                                                ? "bg-purple-500/20 border-purple-500/50 text-white"
-                                                : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
+                                            ? "bg-purple-500/20 border-purple-500/50 text-white"
+                                            : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
                                             }`}
                                     >
                                         <p className="font-semibold">{opt.label}</p>
@@ -213,8 +215,8 @@ export default function SettingsPage() {
                                         key={opt.value}
                                         onClick={() => { setAI({ style: opt.value }); showSaved(); }}
                                         className={`p-4 rounded-xl border text-center transition-all ${ai.style === opt.value
-                                                ? "bg-purple-500/20 border-purple-500/50 text-white"
-                                                : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
+                                            ? "bg-purple-500/20 border-purple-500/50 text-white"
+                                            : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
                                             }`}
                                     >
                                         <p className="font-semibold text-sm">{opt.label}</p>
@@ -283,8 +285,8 @@ export default function SettingsPage() {
                                         key={c.value}
                                         onClick={() => { setPresentation({ defaultAccent: c.value }); showSaved(); }}
                                         className={`w-10 h-10 rounded-xl transition-all ${presentation.defaultAccent === c.value
-                                                ? "ring-2 ring-white ring-offset-2 ring-offset-black scale-110"
-                                                : "hover:scale-105"
+                                            ? "ring-2 ring-white ring-offset-2 ring-offset-black scale-110"
+                                            : "hover:scale-105"
                                             }`}
                                         style={{ backgroundColor: c.color }}
                                         title={c.value}
@@ -310,6 +312,23 @@ export default function SettingsPage() {
                                             }`}
                                     >
                                         <div className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-transform ${presentation.autoPlay ? "translate-x-[22px]" : "translate-x-0.5"
+                                            }`} />
+                                    </button>
+                                </div>
+
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-400">
+                                            <Volume2 className="w-4 h-4" />
+                                        </div>
+                                        <span className="text-sm font-medium">Enable AI Voice (Text-to-Speech)</span>
+                                    </div>
+                                    <button
+                                        onClick={() => { setPresentation({ enableVoice: !presentation.enableVoice }); showSaved(); }}
+                                        className={`w-11 h-6 rounded-full transition-colors relative ${presentation.enableVoice ? "bg-purple-500" : "bg-white/10"
+                                            }`}
+                                    >
+                                        <div className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-transform ${presentation.enableVoice ? "translate-x-[22px]" : "translate-x-0.5"
                                             }`} />
                                     </button>
                                 </div>

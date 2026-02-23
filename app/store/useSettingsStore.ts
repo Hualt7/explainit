@@ -3,7 +3,7 @@ import { persist } from "zustand/middleware";
 
 export interface AISettings {
     tone: "professional" | "casual" | "academic" | "fun" | "storytelling";
-    slideCount: "short" | "medium" | "long"; // 6-8, 12-15, 16-20
+    slideCount: "auto" | "short" | "medium" | "long"; // auto, 6-8, 12-15, 16-20
     style: "visual" | "text-heavy" | "balanced";
     includeCode: boolean;
     includeQuotes: boolean;
@@ -16,6 +16,7 @@ export interface PresentationSettings {
     defaultAccent: string;
     autoPlay: boolean;
     slideDuration: number; // seconds per slide
+    enableVoice: boolean; // Text-to-speech for slides
 }
 
 interface SettingsState {
@@ -41,6 +42,7 @@ const defaultPresentation: PresentationSettings = {
     defaultAccent: "purple",
     autoPlay: true,
     slideDuration: 5,
+    enableVoice: false,
 };
 
 export const useSettingsStore = create<SettingsState>()(

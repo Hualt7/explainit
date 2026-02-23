@@ -21,13 +21,13 @@ export async function POST(req: Request) {
         const includeStatistics = settings?.includeStatistics !== false;
         const customInstructions = settings?.customInstructions || "";
 
-        const slideCountRange = slideCount === "short" ? "6-8" : slideCount === "long" ? "16-20" : "12-15";
+        const slideCountRange = slideCount === "short" ? "6-8" : slideCount === "long" ? "16-20" : slideCount === "auto" ? "AS MANY SLIDES AS NECESSARY to fully explain the topic in deep detail. Do not hold back, generate a comprehensive set of slides." : "12-15";
 
         const toneInstructions: Record<string, string> = {
             professional: "Use a clean, corporate, and authoritative tone. Be precise and polished.",
             casual: "Use a friendly, approachable, conversational tone. Like explaining to a friend.",
             academic: "Use a research-oriented, scholarly tone with proper terminology and citations.",
-            fun: "Use a playful, energetic, entertaining tone. Add humor and enthusiasm.",
+            fun: "Use a playful, energetic, entertaining tone. Add humor and enthusiasm. Use emojis if appropriate.",
             storytelling: "Use a narrative-driven approach. Tell a story, build suspense, use analogies.",
         };
 
@@ -48,21 +48,22 @@ export async function POST(req: Request) {
             : "";
 
         const customLine = customInstructions.trim()
-            ? `\nADDITIONAL USER INSTRUCTIONS (follow these carefully):\n${customInstructions.trim()}`
+            ? `\nADDITIONAL USER INSTRUCTIONS (CRITICAL: You MUST follow these instructions carefully. If the user asks you to act like a pirate, Do it! Act like a pirate! Ensure they apply exactly to the generated content):\n${customInstructions.trim()}`
             : "";
 
         const prompt = `You are ExplainIt, a world-class educational content designer and visual storyteller. Your job is to transform raw text into a RICH, DETAILED, VISUALLY DIVERSE presentation that feels like a premium educational video.
 
+0. MANDATORY SETTINGS:
 TONE: ${toneInstructions[tone] || toneInstructions.professional}
-
 VISUAL STYLE: ${styleInstructions[style] || styleInstructions.balanced}
+You MUST strictly adhere to the Tone and Visual Style set above.
 
 CRITICAL RULES:
-1. Do NOT just copy the user's text. REWRITE, EXPAND, and ENRICH the content with your own expert knowledge.
+1. Do NOT just copy the user's text. REWRITE, EXPAND, and ENRICH the content with your own expert knowledge while strictly following the requested tone.
 2. Add examples, analogies, data, and insights that go FAR BEYOND what the user wrote.
-3. Generate ${slideCountRange} slides. Make it thorough and educational.
+3. Length/Slide Count: Generate ${slideCountRange} Make it thorough and educational.
 4. NEVER use the same slide type twice in a row.
-5. Use a WIDE VARIETY of types — the more visual diversity, the better.
+5. Use a WIDE VARIETY of types — the more visual diversity, the better. Match the visual style requested.
 6. Each slide should have a unique accent color.${excludeLine}${customLine}
 
 AVAILABLE SLIDE TYPES (use as many different types as possible):
