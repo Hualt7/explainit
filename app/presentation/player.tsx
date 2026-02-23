@@ -426,19 +426,15 @@ export default function PresentationPlayer({ slides }: { slides: any[] }) {
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const autoPlayTimer = useRef<NodeJS.Timeout | null>(null);
 
-    // Voice Synth reference
-    const synthRef = useRef<SpeechSynthesis | null>(null);
+    // TTS Audio reference
+    const ttsAudioRef = useRef<HTMLAudioElement | null>(null);
 
     // Get settings store directly in component since it's a client component
     const presentationSettings = useSettingsStore((state: any) => state.presentation);
     const enableVoice = presentationSettings?.enableVoice || false;
 
-    // Initialize audio and speech synth
+    // Initialize ambient audio
     useEffect(() => {
-        if (typeof window !== "undefined" && "speechSynthesis" in window) {
-            synthRef.current = window.speechSynthesis;
-        }
-
         const audio = new Audio(AMBIENT_AUDIO);
         audio.loop = true;
         audio.volume = volume;
@@ -446,11 +442,14 @@ export default function PresentationPlayer({ slides }: { slides: any[] }) {
         return () => {
             audio.pause();
             audio.src = "";
-            if (synthRef.current) synthRef.current.cancel();
+            if (ttsAudioRef.current) {
+                ttsAudioRef.current.pause();
+                ttsAudioRef.current.src = "";
+            }
         };
     }, []);
 
-    // Sync ambient audio with play state
+    // Sync ambient and TTS audio with play/mute state changes
     useEffect(() => {
         if (!audioRef.current) return;
 
@@ -458,25 +457,48 @@ export default function PresentationPlayer({ slides }: { slides: any[] }) {
         const targetVolume = enableVoice ? volume * 0.3 : volume;
         audioRef.current.volume = isMuted ? 0 : targetVolume;
 
+        if (ttsAudioRef.current) {
+            ttsAudioRef.current.volume = isMuted ? 0 : 1;
+        }
+
         if (isPlaying) {
             audioRef.current.play().catch(() => { });
+            if (ttsAudioRef.current && enableVoice) ttsAudioRef.current.play().catch(() => { });
         } else {
             audioRef.current.pause();
+            if (ttsAudioRef.current) ttsAudioRef.current.pause();
         }
     }, [isPlaying, isMuted, volume, enableVoice]);
 
-    // Handle Text-to-Speech for current slide
+    const nextSlide = useCallback(() => {
+        if (currentSlide < slides.length - 1) setCurrentSlide(prev => prev + 1);
+        else setIsPlaying(false);
+    }, [currentSlide, slides.length]);
+
+    const prevSlide = () => { if (currentSlide > 0) setCurrentSlide(prev => prev - 1); };
+
+    // Handle Text-to-Speech for current slide & Auto-Advance
     useEffect(() => {
-        if (!synthRef.current || !enableVoice || !isPlaying || isMuted || !slides || slides.length === 0) {
-            if (synthRef.current) synthRef.current.cancel();
-            return;
+        // Clean up previous TTS audio and timers
+        if (ttsAudioRef.current) {
+            ttsAudioRef.current.pause();
+            ttsAudioRef.current.src = "";
+            ttsAudioRef.current = null;
+        }
+        if (autoPlayTimer.current) {
+            clearTimeout(autoPlayTimer.current);
         }
 
-        // Cancel previous speech
-        synthRef.current.cancel();
+        if (!isPlaying || !slides || slides.length === 0) return;
 
         const slide = slides[currentSlide];
         if (!slide) return;
+
+        // If voice is disabled, fallback to simple 5-second timer
+        if (!enableVoice) {
+            autoPlayTimer.current = setTimeout(nextSlide, 5000);
+            return;
+        }
 
         // Build text to read based on slide type
         let textToRead = "";
@@ -490,20 +512,60 @@ export default function PresentationPlayer({ slides }: { slides: any[] }) {
         if (slide.explanation) textToRead += slide.explanation + ". ";
         if (slide.fact) textToRead += slide.fact + ". ";
 
-        if (textToRead.trim()) {
-            const utterance = new SpeechSynthesisUtterance(textToRead);
-            utterance.rate = 1.0;
-            utterance.pitch = 1.0;
-
-            // Try to use a good English voice
-            const voices = synthRef.current.getVoices();
-            const preferredVoice = voices.find(v => v.name.includes("Google") || v.name.includes("Natural")) || voices[0];
-            if (preferredVoice) utterance.voice = preferredVoice;
-
-            synthRef.current.speak(utterance);
+        if (!textToRead.trim()) {
+            // No text to read, fallback to 5 seconds
+            autoPlayTimer.current = setTimeout(nextSlide, 5000);
+            return;
         }
 
-    }, [currentSlide, isPlaying, enableVoice, isMuted, slides]);
+        // Fetch TTS audio and play it, advancing slide ON ENDED
+        let isActive = true;
+        const fetchTTS = async () => {
+            try {
+                const res = await fetch("/api/tts", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text: textToRead, voice: "alloy" })
+                });
+
+                if (!res.ok || !isActive) throw new Error("TTS failed or aborted");
+
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+
+                const audio = new Audio(url);
+                // Check mute state from out of scope (might be slightly stale if changed during fetch, but handled by effect above later)
+                // However, assigning it to ref ensures the effect above manages it going forward.
+
+                audio.onended = () => {
+                    URL.revokeObjectURL(url);
+                    if (isActive) nextSlide();
+                };
+
+                ttsAudioRef.current = audio;
+
+                // Only start playing if we are still in "isPlaying" state when fetch returns
+                if (isActive) {
+                    audio.play().catch(console.error);
+                }
+            } catch (error) {
+                console.error("Failed to fetch TTS:", error);
+                // Fallback to 5-second timer if generation fails
+                if (isActive) autoPlayTimer.current = setTimeout(nextSlide, 5000);
+            }
+        };
+
+        fetchTTS();
+
+        return () => {
+            isActive = false;
+            if (ttsAudioRef.current) {
+                ttsAudioRef.current.pause();
+                ttsAudioRef.current.src = "";
+            }
+            if (autoPlayTimer.current) clearTimeout(autoPlayTimer.current);
+        };
+    }, [currentSlide, isPlaying, enableVoice, nextSlide]);
 
     const handleExport = async () => {
         if (!slides || slides.length === 0) return;
@@ -516,18 +578,6 @@ export default function PresentationPlayer({ slides }: { slides: any[] }) {
             const a = document.createElement('a'); a.href = url; a.download = 'explainit-presentation.mp4'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
         } catch (error: any) { alert(`Export failed: ${error.message}.`); } finally { setIsExporting(false); }
     };
-
-    const nextSlide = useCallback(() => {
-        if (currentSlide < slides.length - 1) setCurrentSlide(prev => prev + 1);
-        else setIsPlaying(false);
-    }, [currentSlide, slides.length]);
-
-    const prevSlide = () => { if (currentSlide > 0) setCurrentSlide(prev => prev - 1); };
-
-    useEffect(() => {
-        if (isPlaying) autoPlayTimer.current = setTimeout(nextSlide, 5000);
-        return () => { if (autoPlayTimer.current) clearTimeout(autoPlayTimer.current); };
-    }, [isPlaying, currentSlide, nextSlide]);
 
     useEffect(() => {
         if (!slideRef.current) return;

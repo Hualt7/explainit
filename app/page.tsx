@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowRight, Sparkles, Wand2, Video, Code2, Zap, Shield, Palette } from "lucide-react";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
-import { animate, stagger } from "animejs";
+import { stagger } from "framer-motion";
 import ShinyText from "./components/reactbits/ShinyText";
 import SpotlightCard from "./components/reactbits/SpotlightCard";
 import DecryptedText from "./components/reactbits/DecryptedText";
@@ -24,20 +24,6 @@ const fadeUp = {
 };
 
 export default function Home() {
-  const heroTextRef = useRef<HTMLSpanElement>(null);
-
-  useEffect(() => {
-    if (!heroTextRef.current) return;
-    const letters = heroTextRef.current.querySelectorAll(".hero-letter");
-    animate(letters, {
-      opacity: [0, 1],
-      translateY: [30, 0],
-      scale: [0.8, 1],
-      ease: "outElastic(1, 0.5)",
-      duration: 1200,
-      delay: stagger(40, { start: 600 }),
-    });
-  }, []);
 
   return (
     <div className="min-h-screen bg-black text-white selection:bg-purple-500/30 relative">
@@ -92,13 +78,28 @@ export default function Home() {
             >
               Turn text into
               <br />
-              <span ref={heroTextRef} className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-blue-500 animate-gradient">
+              <motion.span
+                initial="hidden"
+                animate="visible"
+                variants={{
+                  hidden: {},
+                  visible: { transition: { staggerChildren: 0.04, delayChildren: 0.6 } }
+                }}
+                className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-blue-500 animate-gradient inline-flex flex-wrap"
+              >
                 {"stunning videos.".split("").map((char, i) => (
-                  <span key={i} className="hero-letter inline-block">
+                  <motion.span
+                    key={i}
+                    variants={{
+                      hidden: { opacity: 0, y: 30, scale: 0.8 },
+                      visible: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", damping: 12, stiffness: 100 } }
+                    }}
+                    className="inline-block"
+                  >
                     {char === " " ? "\u00a0" : char}
-                  </span>
+                  </motion.span>
                 ))}
-              </span>
+              </motion.span>
             </motion.h1>
 
             <motion.p
