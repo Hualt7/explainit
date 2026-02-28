@@ -24,7 +24,8 @@ import {
     Music2,
     Tv,
 } from "lucide-react";
-import { useSettingsStore, type AISettings, type PresentationSettings, type VideoStylePreset } from "../../store/useSettingsStore";
+import { useSettingsStore, type AISettings, type PresentationSettings, type VideoStylePreset, type VideoGenSettings } from "../../store/useSettingsStore";
+import { Film } from "lucide-react";
 
 const toneOptions: { value: AISettings["tone"]; label: string; icon: React.ReactNode; desc: string }[] = [
     { value: "professional", label: "Professional", icon: <Briefcase className="w-4 h-4" />, desc: "Clean, corporate tone" },
@@ -79,7 +80,7 @@ const accentColors = [
 export default function SettingsPage() {
     const [email, setEmail] = useState("");
     const [saved, setSaved] = useState(false);
-    const { ai, presentation, setAI, setPresentation, resetAll } = useSettingsStore();
+    const { ai, presentation, video, setAI, setPresentation, setVideo, resetAll } = useSettingsStore();
 
     useEffect(() => {
         const supabase = createClient();
@@ -381,6 +382,78 @@ export default function SettingsPage() {
                                     </div>
                                 </>
                             )}
+                        </div>
+                    </section>
+
+                    <section className="space-y-3">
+                        <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                            <Film className="w-4 h-4" /> Cinematic Video Generation
+                        </h2>
+                        <p className="text-xs text-gray-500">Configure the AI video provider for cinematic video generation.</p>
+                        <div className="rounded-2xl bg-white/5 border border-white/10 p-5 space-y-4">
+                            <div>
+                                <label className="text-sm font-medium text-gray-400 mb-2 block">Video Provider</label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {([
+                                        { value: "veo" as const, label: "Google Veo 3.1", desc: "60s clips, native audio" },
+                                        { value: "runway" as const, label: "Runway Gen-4", desc: "Best quality, 10s clips" },
+                                        { value: "kling" as const, label: "Kling 2.6", desc: "Affordable, 10s clips" },
+                                    ]).map((opt) => (
+                                        <button
+                                            key={opt.value}
+                                            onClick={() => { setVideo({ provider: opt.value }); showSaved(); }}
+                                            className={`p-3 rounded-xl border text-left transition-all ${video.provider === opt.value ? "bg-purple-500/20 border-purple-500/50 text-white" : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"}`}
+                                        >
+                                            <p className="font-semibold text-sm">{opt.label}</p>
+                                            <p className="text-xs text-gray-500 mt-0.5">{opt.desc}</p>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="text-sm font-medium text-gray-400 mb-2 block">Aspect Ratio</label>
+                                <div className="flex gap-2">
+                                    {([
+                                        { value: "16:9" as const, label: "16:9 Landscape" },
+                                        { value: "9:16" as const, label: "9:16 Portrait" },
+                                        { value: "1:1" as const, label: "1:1 Square" },
+                                    ]).map((opt) => (
+                                        <button
+                                            key={opt.value}
+                                            onClick={() => { setVideo({ aspectRatio: opt.value }); showSaved(); }}
+                                            className={`px-4 py-2 rounded-xl border text-sm font-medium transition-all ${video.aspectRatio === opt.value ? "bg-purple-500/20 border-purple-500/50 text-white" : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"}`}
+                                        >
+                                            {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="text-sm font-medium text-gray-400 mb-2 block">Quality</label>
+                                <div className="flex gap-2">
+                                    {([
+                                        { value: "standard" as const, label: "Standard (720p)", desc: "Faster, lower cost" },
+                                        { value: "high" as const, label: "High (1080p)", desc: "Best quality" },
+                                    ]).map((opt) => (
+                                        <button
+                                            key={opt.value}
+                                            onClick={() => { setVideo({ quality: opt.value }); showSaved(); }}
+                                            className={`px-4 py-2 rounded-xl border text-sm font-medium transition-all ${video.quality === opt.value ? "bg-purple-500/20 border-purple-500/50 text-white" : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"}`}
+                                        >
+                                            {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="pt-2 border-t border-white/5">
+                                <p className="text-xs text-gray-600">
+                                    API keys are configured via environment variables (.env.local):
+                                    GOOGLE_VEO_API_KEY, RUNWAY_API_KEY, KLING_API_KEY / KLING_API_SECRET
+                                </p>
+                            </div>
                         </div>
                     </section>
 

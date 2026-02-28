@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { ProviderKey } from "../lib/video/types";
 
 export type VideoStylePreset = "teacher" | "youtube-tech" | "corporate" | "custom";
 
@@ -27,11 +28,19 @@ export interface PresentationSettings {
     musicVolume: number; // 0–1, ducked further when voice is on
 }
 
+export interface VideoGenSettings {
+    provider: ProviderKey;
+    aspectRatio: "16:9" | "9:16" | "1:1";
+    quality: "standard" | "high";
+}
+
 interface SettingsState {
     ai: AISettings;
     presentation: PresentationSettings;
+    video: VideoGenSettings;
     setAI: (settings: Partial<AISettings>) => void;
     setPresentation: (settings: Partial<PresentationSettings>) => void;
+    setVideo: (settings: Partial<VideoGenSettings>) => void;
     resetAll: () => void;
 }
 
@@ -57,19 +66,30 @@ const defaultPresentation: PresentationSettings = {
     musicVolume: 0.25,
 };
 
+const defaultVideo: VideoGenSettings = {
+    provider: "veo",
+    aspectRatio: "16:9",
+    quality: "standard",
+};
+
 export const useSettingsStore = create<SettingsState>()(
     persist(
         (set) => ({
             ai: defaultAI,
             presentation: defaultPresentation,
+            video: defaultVideo,
             setAI: (updates) =>
                 set((state) => ({ ai: { ...state.ai, ...updates } })),
             setPresentation: (updates) =>
                 set((state) => ({
                     presentation: { ...state.presentation, ...updates },
                 })),
+            setVideo: (updates) =>
+                set((state) => ({
+                    video: { ...state.video, ...updates },
+                })),
             resetAll: () =>
-                set({ ai: defaultAI, presentation: defaultPresentation }),
+                set({ ai: defaultAI, presentation: defaultPresentation, video: defaultVideo }),
         }),
         { name: "explainit-settings" }
     )
